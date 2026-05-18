@@ -1,50 +1,42 @@
-# --- Estrutura de Pastas (BrainCoins) ---
-
 # --- Node / Frontend (React/Vite) ---
 node_modules/
 dist/
-dist-ssr
+dist-ssr/
 *.local
 .eslintcache
 .npm
 .pnpm-store
+.vite/
+*.tsbuildinfo
 
 # --- Java / Maven / Backend ---
 target/
 bin/
 *.class
-*.marshalled
-# Wrapper do Maven
+*.iml
+# Wrapper do Maven (manter o jar no controle de versão)
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/resources/archetype-resources/**
 !**/src/test/resources/archetype-resources/**
 
 # --- Docker ---
-# Ignora arquivos temporários do Docker Desktop
 .docker/
-# Ignora logs de containers
-*.log
-# Ignora overrides locais que você não queira subir para o GitHub
 docker-compose.override.yml
 
-# --- Banco de Dados / Prisma ---
-# Segurança: Nunca suba o arquivo de variáveis de ambiente
+# --- Variáveis de Ambiente ---
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Configurações locais do Prisma
-prisma.config.ts.local
-/prisma/migrations-backup/
-
-# Caso use SQLite em algum teste rápido futuramente
-*.db
-*.db-journal
-
-# --- Sistema e IDE (VS Code / IntelliJ) ---
+# --- Sistema Operacional ---
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- IDE (VS Code / IntelliJ / Eclipse) ---
 .vscode/*
 !.vscode/extensions.json
 .idea/
@@ -53,15 +45,10 @@ prisma.config.ts.local
 *.njsproj
 *.sln
 *.sw?
-# Arquivos específicos do eclipse/projeto java no VS Code
 .project
 .classpath
 .settings/
 .factorypath
-
-# --- Cloudflare / Wrangler ---
-.wrangler/
-.dev.vars
 
 # --- Logs e Temporários ---
 logs/

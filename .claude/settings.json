@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker-compose up *)",
+      "Bash(build\")",
+      "Bash(./mvnw clean *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
