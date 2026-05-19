@@ -4,7 +4,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Software Engineering\\\\braincoins\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(Head -100)"
+      "Bash(Head -100)",
+      "Bash(Get-Service postgresql*)",
+      "Bash(Select-Object Name, Status)"
     ]
   }
 }

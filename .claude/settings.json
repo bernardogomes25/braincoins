@@ -5,7 +5,18 @@
       "Bash(build\")",
       "Bash(./mvnw clean *)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(timeout 180 bash -c 'tail -f \"/c/Software Engineering/braincoins/code/backend/moeda/mvnw-run.log\" 2>/dev/null || sleep 120')",
+      "Bash(curl -s http://localhost:8080/api)",
+      "Bash(curl -s http://localhost:8080/api/alunos -X GET -H \"Content-Type: application/json\")",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(netstat -ano)",
+      "Bash(nc -zv localhost 5173)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_type",
+      "mcp__plugin_playwright_playwright__browser_evaluate"
     ]
   }
 }

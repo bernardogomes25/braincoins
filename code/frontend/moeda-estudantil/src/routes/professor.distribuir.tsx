@@ -139,8 +139,18 @@ function Distribuir() {
               Quantidade <span className="text-white/60 font-normal">(máx: {prof.saldo})</span>
             </label>
             <input
-              type="number" min={1} max={prof.saldo} value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              type="text" inputMode="numeric" value={amount}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") {
+                  setAmount(0);
+                } else {
+                  const num = Number(val);
+                  if (!isNaN(num)) {
+                    setAmount(Math.max(0, Math.min(num, prof.saldo)));
+                  }
+                }
+              }}
               className="w-full px-3 py-2.5 rounded-xl bg-white/15 border border-white/25 text-white text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-mint"
             />
             {insufficient && (

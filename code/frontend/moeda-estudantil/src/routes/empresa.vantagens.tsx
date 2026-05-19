@@ -148,22 +148,42 @@ function EmpresaVantagens() {
               <div>
                 <label className="text-xs text-white/80">Custo (moedas)</label>
                 <input
-                  type="number"
-                  min={1}
+                  type="text"
+                  inputMode="numeric"
                   className={inputCls}
                   value={form.custo}
-                  onChange={(e) => setForm({ ...form, custo: +e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setForm({ ...form, custo: 0 });
+                    } else {
+                      const num = Number(val);
+                      if (!isNaN(num)) {
+                        setForm({ ...form, custo: Math.max(1, num) });
+                      }
+                    }
+                  }}
                   required
                 />
               </div>
               <div>
                 <label className="text-xs text-white/80">Estoque</label>
                 <input
-                  type="number"
-                  min={0}
+                  type="text"
+                  inputMode="numeric"
                   className={inputCls}
                   value={form.estoque}
-                  onChange={(e) => setForm({ ...form, estoque: +e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setForm({ ...form, estoque: 0 });
+                    } else {
+                      const num = Number(val);
+                      if (!isNaN(num)) {
+                        setForm({ ...form, estoque: Math.max(0, num) });
+                      }
+                    }
+                  }}
                 />
               </div>
             </div>
