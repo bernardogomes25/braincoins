@@ -2,6 +2,7 @@ package com.lab3.moeda.service;
 
 import com.lab3.moeda.dto.request.AlunoRequestDTO;
 import com.lab3.moeda.dto.response.AlunoResponseDTO;
+import com.lab3.moeda.exception.SenhaIncorretaException;
 import com.lab3.moeda.model.AlunoEntity;
 import com.lab3.moeda.repository.AlunoRepository;
 import com.lab3.moeda.repository.InstituicaoRepository;
@@ -29,15 +30,15 @@ public class AlunoService {
     // CREATE
     @Transactional
     public AlunoResponseDTO criar(AlunoRequestDTO request) {
-        if (!instituicaoRepository.existsByNome(request.instituicao()))
-            throw new NoSuchElementException("Instituição não encontrada: " + request.instituicao());
+        var instituicao = instituicaoRepository.findById(request.instituicaoId())
+                .orElseThrow(() -> new NoSuchElementException("Instituição não encontrada."));
 
         if(alunoRepository.existsByEmail(request.email()))
             throw new IllegalStateException("Email inserido já está em uso.");
 
         AlunoEntity novoAluno = new AlunoEntity(
                 request.nome(), request.cpf(), request.rg(),
-                request.endereco(), request.instituicao(), request.curso(), request.email(),
+                request.endereco(), instituicao.getNome(), request.curso(), request.email(),
                 criptografia.encode(request.senha())
         );
         AlunoEntity alunoSalvo = alunoRepository.save(novoAluno);
@@ -90,10 +91,10 @@ public class AlunoService {
 
     public AlunoResponseDTO login(String email, String senha) {
         AlunoEntity aluno = alunoRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado."));
 
         if (!criptografia.matches(senha, aluno.getSenha()))
-            throw new RuntimeException("Senha incorreta.");
+            throw new SenhaIncorretaException();
 
         return toResponseDTO(aluno);
     }

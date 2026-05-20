@@ -26,6 +26,7 @@ docker-compose.override.yml
 # --- Variáveis de Ambiente ---
 .env
 .env.local
+env.properties
 .env.development.local
 .env.test.local
 .env.production.local

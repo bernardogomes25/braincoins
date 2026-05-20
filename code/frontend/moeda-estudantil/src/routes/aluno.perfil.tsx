@@ -104,9 +104,9 @@ function Perfil() {
         rg: aluno.rg,
         endereco: aluno.endereco,
       };
-      // Só enviar senha se não estiver vazia
-      if (aluno.senha && aluno.senha.trim().length > 0) {
-        payload.senha = aluno.senha;
+      // Só enviar senha se o usuário digitou uma nova no formulário
+      if (updatedData.senha && updatedData.senha.trim().length > 0) {
+        payload.senha = updatedData.senha;
       }
       const response = await atualizarAluno(aluno.id, payload);
       setAluno(response.data);

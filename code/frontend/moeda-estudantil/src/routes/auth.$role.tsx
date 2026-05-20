@@ -21,6 +21,12 @@ function AuthPage() {
   const store = useStore();
   const [mode, setMode] = useState<"login" | "register">("login");
 
+  useEffect(() => {
+    if (store.isInitialized && store.currentRole && store.currentRole !== role) {
+      store.logout();
+    }
+  }, [store.isInitialized, store.currentRole, role]);
+
   if (!["aluno", "professor", "empresa", "instituicao"].includes(role)) {
     return <div className="p-8 text-white">Perfil inválido. <Link to="/" className="underline">Voltar</Link></div>;
   }
@@ -128,16 +134,13 @@ function LoginForm({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) {
       <button className="w-full py-2.5 rounded-xl bg-mint text-mint-foreground font-semibold hover:opacity-90">
         Entrar
       </button>
-      <button type="button" className="w-full text-xs text-white/70 hover:text-white">
-        Esqueci minha senha
-      </button>
     </form>
   );
 }
 
 function RegisterAluno({ onDone }: { onDone: () => void }) {
   const [instituicoes, setInstituicoes] = useState<{ id: number; nome: string }[]>([]);
-  const [form, setForm] = useState({ nome: "", cpf: "", rg: "", endereco: "", instituicao: "", curso: "", email: "", senha: "" });
+  const [form, setForm] = useState({ nome: "", cpf: "", rg: "", endereco: "", instituicaoId: "", curso: "", email: "", senha: "" });
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm({ ...form, [k]: e.target.value });
 
@@ -145,7 +148,7 @@ function RegisterAluno({ onDone }: { onDone: () => void }) {
     listarInstituicoes().then((res) => {
       const lista = res.data;
       setInstituicoes(lista);
-      if (lista.length > 0) setForm((f) => ({ ...f, instituicao: lista[0].nome }));
+      if (lista.length > 0) setForm((f) => ({ ...f, instituicaoId: String(lista[0].id) }));
     }).catch(() => toast.error("Erro ao carregar instituições."));
   }, []);
 
@@ -160,10 +163,10 @@ function RegisterAluno({ onDone }: { onDone: () => void }) {
     try {
       await criarAluno({
         nome: form.nome,
-        cpf: form.cpf.replace(/\D/g, ""),       // envia só os dígitos: "12345678910"
-        rg: form.rg.replace(/\D/g, ""),          // idem
+        cpf: form.cpf.replace(/\D/g, ""),
+        rg: form.rg.replace(/\D/g, ""),
         endereco: form.endereco,
-        instituicao: form.instituicao,
+        instituicaoId: Number(form.instituicaoId),
         curso: form.curso,
         email: form.email,
         senha: form.senha,
@@ -173,9 +176,11 @@ function RegisterAluno({ onDone }: { onDone: () => void }) {
       onDone();
     } catch (error: any) {
       if (error.response?.status === 409) {
-        toast.error("CPF, RG ou e-mail já cadastrado.");
+        toast.error(error.response?.data?.message ?? "CPF, RG ou e-mail já cadastrado.");
+      } else if (error.response?.status === 404) {
+        toast.error(error.response?.data?.message ?? "Instituição não encontrada.");
       } else {
-        toast.error("Erro ao cadastrar. Tente novamente.");
+        toast.error(error.response?.data?.message ?? "Erro ao cadastrar. Tente novamente.");
       }
     }
   };
@@ -189,8 +194,8 @@ function RegisterAluno({ onDone }: { onDone: () => void }) {
       </div>
       <Field label="Endereço"><input required value={form.endereco} onChange={set("endereco")} className={inputCls} /></Field>
       <Field label="Instituição">
-        <select required value={form.instituicao} onChange={set("instituicao")} className={inputCls}>
-          {instituicoes.map((i) => <option key={i.id} className="text-black">{i.nome}</option>)}
+        <select required value={form.instituicaoId} onChange={set("instituicaoId")} className={inputCls}>
+          {instituicoes.map((i) => <option key={i.id} value={String(i.id)} className="text-black">{i.nome}</option>)}
         </select>
       </Field>
       <Field label="Curso"><input required value={form.curso} onChange={set("curso")} className={inputCls} /></Field>

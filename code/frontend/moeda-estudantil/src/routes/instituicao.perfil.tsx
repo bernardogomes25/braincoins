@@ -36,7 +36,8 @@ function Perfil() {
 
   const handleSave = async (updatedData: any) => {
     const id = Number((store.currentUser as any)?.id ?? instituicao?.id ?? 1);
-    const res = await atualizarInstituicao(id, updatedData);
+    const payload = { nome: instituicao.nome, cnpj: instituicao.cnpj, ...updatedData };
+    const res = await atualizarInstituicao(id, payload);
     // Merge: prefere dados do backend; para campos que o backend retorne null (versão antiga),
     // mantém o valor digitado no formulário
     const backendData: Record<string, any> = res.data ?? {};

@@ -12,12 +12,10 @@ import java.util.List;
 @Repository
 public interface TransacaoRepository extends JpaRepository<TransacaoEntity, Integer> {
     /**
-     * Busca transações para um aluno (como destino ou origem).
+     * Busca transações recebidas por um aluno (como destinatário).
      * Ordenadas pela data mais recente.
      */
-    @Query("SELECT t FROM TransacaoEntity t WHERE t.aluno.id = :alunoId " +
-           "OR t.professor.id IN (SELECT p.id FROM ProfessorEntity p WHERE :alunoId IS NOT NULL) " +
-           "ORDER BY t.data DESC")
+    @Query("SELECT t FROM TransacaoEntity t WHERE t.aluno.id = :alunoId ORDER BY t.data DESC")
     List<TransacaoEntity> findByAlunoId(@Param("alunoId") int alunoId);
 
     /**

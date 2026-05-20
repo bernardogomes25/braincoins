@@ -2,6 +2,7 @@ package com.lab3.moeda.service;
 
 import com.lab3.moeda.dto.request.InstituicaoRequestDTO;
 import com.lab3.moeda.dto.response.InstituicaoResponseDTO;
+import com.lab3.moeda.exception.SenhaIncorretaException;
 import com.lab3.moeda.model.AlunoEntity;
 import com.lab3.moeda.model.InstituicaoEntity;
 import com.lab3.moeda.model.ProfessorEntity;
@@ -69,13 +70,11 @@ public class InstituicaoService {
         return toResponseDTO(instituicao);
     }
 
-    // UPDATE
     @Transactional
     public InstituicaoResponseDTO atualizar(int id, InstituicaoRequestDTO request) {
         InstituicaoEntity instituicao = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Instituicao não encontrada."));
 
-        String nomeAntigo = instituicao.getNome();
         instituicao.setNome(request.nome());
         instituicao.setEmail(request.email());
         instituicao.setEndereco(request.endereco());
@@ -85,24 +84,20 @@ public class InstituicaoService {
             instituicao.setSenha(criptografia.encode(request.senha()));
 
         InstituicaoEntity salva = repository.save(instituicao);
-
-        if (!nomeAntigo.equals(request.nome())) {
-            List<AlunoEntity> alunos = alunoRepository.findByInstituicao(nomeAntigo);
-            alunos.forEach(a -> a.setInstituicao(request.nome()));
-            alunoRepository.saveAll(alunos);
-        }
-
         return toResponseDTO(salva);
     }
 
-    // DELETE
     @Transactional
     public void deletar(int id) {
         InstituicaoEntity instituicao = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Instituicao não encontrada."));
 
-        // Nulifica professor_id nas transações antes de remover os professores (evita FK violation)
-        transacaoRepository.nulificarProfessoresDaInstituicao(id);
+        if (instituicao.getProfessores() != null && !instituicao.getProfessores().isEmpty()) {
+            throw new IllegalStateException(
+                "Não é possível deletar uma instituição que possui professores associados. " +
+                "Remova ou reatribua os " + instituicao.getProfessores().size() + " professor(es) primeiro."
+            );
+        }
 
         List<AlunoEntity> alunos = alunoRepository.findByInstituicao(instituicao.getNome());
         alunos.forEach(a -> a.setInstituicao("Sem instituição"));
@@ -116,7 +111,7 @@ public class InstituicaoService {
                 .orElseThrow(() -> new NoSuchElementException("Instituicao não encontrada."));
 
         if (!criptografia.matches(senha, instituicao.getSenha()))
-            throw new RuntimeException("Senha incorreta.");
+            throw new SenhaIncorretaException();
 
         return toResponseDTO(instituicao);
     }
@@ -156,14 +151,12 @@ public class InstituicaoService {
         return Map.of("importados", importados, "erros", erros);
     }
 
-    // Conversão entidade → DTO de resposta
     private InstituicaoResponseDTO toResponseDTO(InstituicaoEntity instituicao) {
         return new InstituicaoResponseDTO(
                 instituicao.getId(),
                 instituicao.getNome(),
                 instituicao.getCnpj(),
                 instituicao.getEmail(),
-                instituicao.getSenha(),
                 instituicao.getEndereco(),
                 instituicao.getTelefone()
         );

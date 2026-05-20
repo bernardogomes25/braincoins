@@ -13,16 +13,19 @@ import com.lab3.moeda.repository.EmpresaRepository;
 import com.lab3.moeda.repository.ResgateRepository;
 import com.lab3.moeda.repository.VantagemRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Random;
 
 @Service
 public class ResgateService {
 
+    private static final Logger log = LoggerFactory.getLogger(ResgateService.class);
     private static final String CUPOM_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
     private static final int DIAS_VALIDADE = 15;
 
@@ -116,7 +119,7 @@ public class ResgateService {
         }
 
         if (!expirados.isEmpty())
-            System.out.printf("[Scheduler] %d resgate(s) expirado(s) processado(s).%n", expirados.size());
+            log.info("[Scheduler] {} resgate(s) expirado(s) processado(s).", expirados.size());
     }
 
     private void enviarEmailAluno(AlunoEntity aluno, VantagemEntity vantagem, String codigo, LocalDateTime dataResgate) {
@@ -145,7 +148,7 @@ public class ResgateService {
             );
             emailService.enviarEmailAssincrono(aluno.getEmail(), assunto, corpo);
         } catch (Exception e) {
-            System.err.println("Erro ao enviar e-mail de cupom para aluno: " + e.getMessage());
+            log.error("Erro ao enviar e-mail de cupom para aluno {}: {}", aluno.getEmail(), e.getMessage(), e);
         }
     }
 
@@ -173,7 +176,7 @@ public class ResgateService {
             );
             emailService.enviarEmailAssincrono(vantagem.getEmpresa().getEmail(), assunto, corpo);
         } catch (Exception e) {
-            System.err.println("Erro ao enviar e-mail de resgate para empresa: " + e.getMessage());
+            log.error("Erro ao enviar e-mail de resgate para empresa {}: {}", vantagem.getEmpresa().getEmail(), e.getMessage(), e);
         }
     }
 
@@ -196,12 +199,12 @@ public class ResgateService {
             );
             emailService.enviarEmailAssincrono(resgate.getAluno().getEmail(), assunto, corpo);
         } catch (Exception e) {
-            System.err.println("Erro ao enviar e-mail de cancelamento: " + e.getMessage());
+            log.error("Erro ao enviar e-mail de cancelamento para {}: {}", resgate.getAluno().getEmail(), e.getMessage(), e);
         }
     }
 
     private String gerarCodigo() {
-        Random rnd = new Random();
+        SecureRandom rnd = new SecureRandom();
         StringBuilder sb = new StringBuilder(8);
         for (int i = 0; i < 8; i++) {
             sb.append(CUPOM_CHARS.charAt(rnd.nextInt(CUPOM_CHARS.length())));

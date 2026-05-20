@@ -4,6 +4,7 @@ import com.lab3.moeda.dto.request.TransacaoRequestDTO;
 import com.lab3.moeda.dto.response.TransacaoResponseDTO;
 import com.lab3.moeda.exception.SaldoInsuficienteException;
 import com.lab3.moeda.service.TransacaoService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class TransacaoController {
      * @return TransacaoResponseDTO com status 201 CREATED
      */
     @PostMapping
-    public ResponseEntity<TransacaoResponseDTO> enviarMoedas(@RequestBody TransacaoRequestDTO request) {
+    public ResponseEntity<TransacaoResponseDTO> enviarMoedas(@Valid @RequestBody TransacaoRequestDTO request) {
         TransacaoResponseDTO resposta = transacaoService.enviarMoedas(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
