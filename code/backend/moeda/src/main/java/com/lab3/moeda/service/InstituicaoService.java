@@ -74,6 +74,7 @@ public class InstituicaoService {
         InstituicaoEntity instituicao = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Instituicao não encontrada."));
 
+        instituicao.setNome(request.nome());
         instituicao.setEmail(request.email());
         instituicao.setEndereco(request.endereco());
         instituicao.setTelefone(request.telefone());

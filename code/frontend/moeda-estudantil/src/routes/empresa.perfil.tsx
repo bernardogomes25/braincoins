@@ -88,9 +88,9 @@ function Perfil() {
         endereco: empresa.endereco,
         email: empresa.email,
       };
-      // Só enviar senha se não estiver vazia
-      if (empresa.senha && empresa.senha.trim().length > 0) {
-        payload.senha = empresa.senha;
+      // Só enviar senha se o usuário digitou uma nova no formulário
+      if (updatedData.senha && updatedData.senha.trim().length > 0) {
+        payload.senha = updatedData.senha;
       }
       const response = await atualizarEmpresa(empresa.id, payload);
       setEmpresa(response.data);

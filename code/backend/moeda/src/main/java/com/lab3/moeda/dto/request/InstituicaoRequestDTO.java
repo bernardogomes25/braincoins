@@ -16,7 +16,6 @@ public record InstituicaoRequestDTO (
         @Email(message = "Email deve ser válido")
         String email,
 
-        @NotBlank(message = "Senha não pode estar vazia")
         @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
         String senha,
 

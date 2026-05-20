@@ -5,7 +5,7 @@ public record AlunoRequestDTO(
         String cpf,
         String rg,
         String endereco,
-        String instituicao,
+        Integer instituicaoId,
         String curso,
         String email,
         String senha
