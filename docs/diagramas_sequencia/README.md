@@ -76,7 +76,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC01 - Cadastrar Login e Senha](./UC01 - Cadastrar Login e Senha.png)
+![Diagrama de Sequência: UC01 - Cadastrar Login e Senha](<./UC01 - Cadastrar Login e Senha.png>)
 
 ---
 
@@ -129,7 +129,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC02 - Criar Conta (Aluno)](./UC02 - Criar Conta (Aluno).png)
+![Diagrama de Sequência: UC02 - Criar Conta (Aluno)](<./UC02 - Criar Conta (Aluno).png>)
 
 ---
 
@@ -182,7 +182,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC03 - Criar Conta (Empresa)](./UC03 - Criar Conta (Empresa).png)
+![Diagrama de Sequência: UC03 - Criar Conta (Empresa)](<./UC03 - Criar Conta (Empresa).png>)
 
 ---
 
@@ -238,7 +238,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC04 - Pre-cadastrar Instituicao (CSV)](./UC04 - Pre-cadastrar Instituicao (CSV).png)
+![Diagrama de Sequência: UC04 - Pre-cadastrar Instituicao (CSV)](<./UC04 - Pre-cadastrar Instituicao (CSV).png>)
 
 ---
 
@@ -285,7 +285,7 @@ deactivate ES
 @enduml
 ```
 
-![Diagrama de Sequência: UC05 - Pre-cadastrar Professor (auto)](./UC05 - Pre-cadastrar Professor (auto).png)
+![Diagrama de Sequência: UC05 - Pre-cadastrar Professor (auto)](<./UC05 - Pre-cadastrar Professor (auto).png>)
 
 ---
 
@@ -323,7 +323,7 @@ note over SS: Saldo de todos os professores\nreiniciado para 1000 moedas
 @enduml
 ```
 
-![Diagrama de Sequência: UC06 - Receber Moedas Semestrais](./UC06 - Receber Moedas Semestrais.png)
+![Diagrama de Sequência: UC06 - Receber Moedas Semestrais](<./UC06 - Receber Moedas Semestrais.png>)
 
 ---
 
@@ -390,7 +390,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC07 - Distribuir Moedas](./UC07 - Distribuir Moedas.png)
+![Diagrama de Sequência: UC07 - Distribuir Moedas](<./UC07 - Distribuir Moedas.png>)
 
 ---
 
@@ -433,7 +433,7 @@ note over P, DB: Nenhuma transação é criada.\nSaldo do professor e do aluno p
 @enduml
 ```
 
-![Diagrama de Sequência: UC08 - Cancelar Operacao Saldo Insuficiente Professor](./UC08 - Cancelar Operacao Saldo Insuficiente Professor.png)
+![Diagrama de Sequência: UC08 - Cancelar Operacao Saldo Insuficiente Professor](<./UC08 - Cancelar Operacao Saldo Insuficiente Professor.png>)
 
 ---
 
@@ -479,7 +479,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC09 - Consultar Extrato](./UC09 - Consultar Extrato.png)
+![Diagrama de Sequência: UC09 - Consultar Extrato](<./UC09 - Consultar Extrato.png>)
 
 ---
 
@@ -522,7 +522,7 @@ note over A: Aluno também recebe\ne-mail de notificação (UC11)
 @enduml
 ```
 
-![Diagrama de Sequência: UC10 - Receber Moedas Aluno](./UC10 - Receber Moedas Aluno.png)
+![Diagrama de Sequência: UC10 - Receber Moedas Aluno](<./UC10 - Receber Moedas Aluno.png>)
 
 ---
 
@@ -561,7 +561,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC11 - Notificar Aluno por Email](./UC11 - Notificar Aluno por Email.png)
+![Diagrama de Sequência: UC11 - Notificar Aluno por Email](<./UC11 - Notificar Aluno por Email.png>)
 
 ---
 
@@ -629,7 +629,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC12 - Resgatar Vantagem](./UC12 - Resgatar Vantagem.png)
+![Diagrama de Sequência: UC12 - Resgatar Vantagem](<./UC12 - Resgatar Vantagem.png>)
 
 ---
 
@@ -675,7 +675,7 @@ note over A, DB: Nenhum resgate é criado.\nSaldo do aluno e estoque da vantagem
 @enduml
 ```
 
-![Diagrama de Sequência: UC13 - Cancelar Operacao Saldo Insuficiente Aluno](./UC13 - Cancelar Operacao Saldo Insuficiente Aluno.png)
+![Diagrama de Sequência: UC13 - Cancelar Operacao Saldo Insuficiente Aluno](<./UC13 - Cancelar Operacao Saldo Insuficiente Aluno.png>)
 
 ---
 
@@ -715,7 +715,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC14 - Enviar Email Confirmacao Resgate](./UC14 - Enviar Email Confirmacao Resgate.png)
+![Diagrama de Sequência: UC14 - Enviar Email Confirmacao Resgate](<./UC14 - Enviar Email Confirmacao Resgate.png>)
 
 ---
 
@@ -766,7 +766,7 @@ note over SCHED: Saldo dos alunos reembolsado.\nEstoque das vantagens restaurado
 @enduml
 ```
 
-![Diagrama de Sequência: UC15 - Cancelar Resgate Expirado](./UC15 - Cancelar Resgate Expirado.png)
+![Diagrama de Sequência: UC15 - Cancelar Resgate Expirado](<./UC15 - Cancelar Resgate Expirado.png>)
 
 ---
 
@@ -804,7 +804,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC16 - Comunicar Aluno via Email](./UC16 - Comunicar Aluno via Email.png)
+![Diagrama de Sequência: UC16 - Comunicar Aluno via Email](<./UC16 - Comunicar Aluno via Email.png>)
 
 ---
 
@@ -847,7 +847,7 @@ note over E, FE: Para editar: PUT /vantagens/{id}\nPara ativar/desativar: PATCH 
 @enduml
 ```
 
-![Diagrama de Sequência: UC17 - Cadastrar Vantagem](./UC17 - Cadastrar Vantagem.png)
+![Diagrama de Sequência: UC17 - Cadastrar Vantagem](<./UC17 - Cadastrar Vantagem.png>)
 
 ---
 
@@ -902,7 +902,7 @@ end
 @enduml
 ```
 
-![Diagrama de Sequência: UC18 - Confirmar Resgate](./UC18 - Confirmar Resgate.png)
+![Diagrama de Sequência: UC18 - Confirmar Resgate](<./UC18 - Confirmar Resgate.png>)
 
 ---
 
@@ -961,4 +961,4 @@ note over E: Aluno recebe e-mail\ncom confirmação do reembolso\nde moedas (UC1
 @enduml
 ```
 
-![Diagrama de Sequência: UC19 - Reembolsar Aluno](./UC19 - Reembolsar Aluno.png)
+![Diagrama de Sequência: UC19 - Reembolsar Aluno](<./UC19 - Reembolsar Aluno.png>)
