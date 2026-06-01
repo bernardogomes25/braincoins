@@ -180,7 +180,7 @@ alt Email ou CNPJ já cadastrado
 end
 @enduml
 
-![Diagrama de Sequência: UC03 - Criar Conta (Empresa)](./UC03 - Criar Conta (Empresa).png)
+![Diagrama de Sequência: UC03 - Criar Conta (Empresa)](./UC03%20-%20Criar%20Conta%20%28Empresa%29.png)
 
 ---
 
@@ -235,7 +235,7 @@ alt Linha com dados inválidos (CPF/email duplicado)
 end
 @enduml
 
-![Diagrama de Sequência: UC04 - Pre-cadastrar Instituicao (CSV)](./UC04 - Pre-cadastrar Instituicao (CSV).png)
+![Diagrama de Sequência: UC04 - Pre-cadastrar Instituicao (CSV)](./UC04%20-%20Pre-cadastrar%20Instituicao%20%28CSV%29.png)
 
 ---
 
@@ -281,7 +281,7 @@ ES --> I: E-mail entregue ao professor
 deactivate ES
 @enduml
 
-![Diagrama de Sequência: UC05 - Pre-cadastrar Professor (auto)](./UC05 - Pre-cadastrar Professor (auto).png)
+![Diagrama de Sequência: UC05 - Pre-cadastrar Professor (auto)](./UC05%20-%20Pre-cadastrar%20Professor%20%28auto%29.png)
 
 ---
 
@@ -318,7 +318,7 @@ deactivate PS
 note over SS: Saldo de todos os professores\nreiniciado para 1000 moedas
 @enduml
 
-![Diagrama de Sequência: UC06 - Receber Moedas Semestrais](./UC06 - Receber Moedas Semestrais.png)
+![Diagrama de Sequência: UC06 - Receber Moedas Semestrais](./UC06%20-%20Receber%20Moedas%20Semestrais.png)
 
 ---
 
@@ -384,7 +384,7 @@ else Saldo suficiente
 end
 @enduml
 
-![Diagrama de Sequência: UC07 - Distribuir Moedas](./UC07 - Distribuir Moedas.png)
+![Diagrama de Sequência: UC07 - Distribuir Moedas](./UC07%20-%20Distribuir%20Moedas.png)
 
 ---
 
@@ -426,7 +426,7 @@ FE --> P: Exibe mensagem:\n"Você não possui saldo suficiente\npara realizar es
 note over P, DB: Nenhuma transação é criada.\nSaldo do professor e do aluno permanecem inalterados.
 @enduml
 
-![Diagrama de Sequência: UC08 - Cancelar Operacao Saldo Insuficiente Professor](./UC08 - Cancelar Operacao Saldo Insuficiente Professor.png)
+![Diagrama de Sequência: UC08 - Cancelar Operacao Saldo Insuficiente Professor](./UC08%20-%20Cancelar%20Operacao%20Saldo%20Insuficiente%20Professor.png)
 
 ---
 
@@ -471,7 +471,7 @@ alt Nenhuma transação encontrada
 end
 @enduml
 
-![Diagrama de Sequência: UC09 - Consultar Extrato](./UC09 - Consultar Extrato.png)
+![Diagrama de Sequência: UC09 - Consultar Extrato](./UC09%20-%20Consultar%20Extrato.png)
 
 ---
 
@@ -513,7 +513,7 @@ FE --> A: Exibe saldo atual de moedas\ne histórico de recebimentos
 note over A: Aluno também recebe\ne-mail de notificação (UC11)
 @enduml
 
-![Diagrama de Sequência: UC10 - Receber Moedas Aluno](./UC10 - Receber Moedas Aluno.png)
+![Diagrama de Sequência: UC10 - Receber Moedas Aluno](./UC10%20-%20Receber%20Moedas%20Aluno.png)
 
 ---
 
@@ -551,7 +551,7 @@ alt Mailtrap indisponível ou sem credenciais
 end
 @enduml
 
-![Diagrama de Sequência: UC11 - Notificar Aluno por Email](./UC11 - Notificar Aluno por Email.png)
+![Diagrama de Sequência: UC11 - Notificar Aluno por Email](./UC11%20-%20Notificar%20Aluno%20por%20Email.png)
 
 ---
 
@@ -618,7 +618,7 @@ else Operação válida
 end
 @enduml
 
-![Diagrama de Sequência: UC12 - Resgatar Vantagem](./UC12 - Resgatar Vantagem.png)
+![Diagrama de Sequência: UC12 - Resgatar Vantagem](./UC12%20-%20Resgatar%20Vantagem.png)
 
 ---
 
@@ -663,7 +663,7 @@ FE --> A: Exibe mensagem:\n"Você não possui moedas suficientes\npara resgatar 
 note over A, DB: Nenhum resgate é criado.\nSaldo do aluno e estoque da vantagem\npermanecem inalterados.
 @enduml
 
-![Diagrama de Sequência: UC13 - Cancelar Operacao Saldo Insuficiente Aluno](./UC13 - Cancelar Operacao Saldo Insuficiente Aluno.png)
+![Diagrama de Sequência: UC13 - Cancelar Operacao Saldo Insuficiente Aluno](./UC13%20-%20Cancelar%20Operacao%20Saldo%20Insuficiente%20Aluno.png)
 
 ---
 
@@ -702,7 +702,7 @@ alt Mailtrap indisponível
 end
 @enduml
 
-![Diagrama de Sequência: UC14 - Enviar Email Confirmacao Resgate](./UC14 - Enviar Email Confirmacao Resgate.png)
+![Diagrama de Sequência: UC14 - Enviar Email Confirmacao Resgate](./UC14%20-%20Enviar%20Email%20Confirmacao%20Resgate.png)
 
 ---
 
@@ -752,7 +752,7 @@ deactivate RS
 note over SCHED: Saldo dos alunos reembolsado.\nEstoque das vantagens restaurado.
 @enduml
 
-![Diagrama de Sequência: UC15 - Cancelar Resgate Expirado](./UC15 - Cancelar Resgate Expirado.png)
+![Diagrama de Sequência: UC15 - Cancelar Resgate Expirado](./UC15%20-%20Cancelar%20Resgate%20Expirado.png)
 
 ---
 
@@ -789,7 +789,7 @@ alt Mailtrap indisponível
 end
 @enduml
 
-![Diagrama de Sequência: UC16 - Comunicar Aluno via Email](./UC16 - Comunicar Aluno via Email.png)
+![Diagrama de Sequência: UC16 - Comunicar Aluno via Email](./UC16%20-%20Comunicar%20Aluno%20via%20Email.png)
 
 ---
 
@@ -831,7 +831,7 @@ FE --> E: Vantagem exibida na listagem
 note over E, FE: Para editar: PUT /vantagens/{id}\nPara ativar/desativar: PATCH /vantagens/{id}\nPara remover: DELETE /vantagens/{id} (com confirmação)
 @enduml
 
-![Diagrama de Sequência: UC17 - Cadastrar Vantagem](./UC17 - Cadastrar Vantagem.png)
+![Diagrama de Sequência: UC17 - Cadastrar Vantagem](./UC17%20-%20Cadastrar%20Vantagem.png)
 
 ---
 
@@ -885,7 +885,7 @@ alt Resgate não encontrado
 end
 @enduml
 
-![Diagrama de Sequência: UC18 - Confirmar Resgate](./UC18 - Confirmar Resgate.png)
+![Diagrama de Sequência: UC18 - Confirmar Resgate](./UC18%20-%20Confirmar%20Resgate.png)
 
 ---
 
@@ -943,4 +943,4 @@ FE --> E: Resgate marcado como Rejeitado
 note over E: Aluno recebe e-mail\ncom confirmação do reembolso\nde moedas (UC16)
 @enduml
 
-![Diagrama de Sequência: UC19 - Reembolsar Aluno](./UC19 - Reembolsar Aluno.png)m
+![Diagrama de Sequência: UC19 - Reembolsar Aluno](./UC19%20-%20Reembolsar%20Aluno.png)
