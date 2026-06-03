@@ -42,8 +42,8 @@ braincoins/
 ├── BrainCoins_API.postman_collection.json
 ├── docs/                               # Diagramas (UML, ER, Casos de Uso)
 └── code/
-    ├── backend/moeda/                  # Spring Boot (9 controllers, 10 services, 7 repos, 9 entities)
-    └── frontend/moeda-estudantil/      # React + Vite (25 rotas, 50+ componentes Radix UI)
+    ├── backend/moeda/                  # Spring Boot (10 controllers, 11 services, 8 repos, 10 entities)
+    └── frontend/moeda-estudantil/      # React + Vite (26 rotas, 50+ componentes Radix UI)
 ```
 
 ---
@@ -119,6 +119,13 @@ Base: `http://localhost:8080/api`
 | `/transacoes` | POST | Professor distribui moedas |
 | `/vantagens`, `/vantagens/resgatar` | GET/POST/DELETE/PATCH | Gerenciar vantagens e resgates |
 | `/resgates` | GET/PATCH | Listar e confirmar resgates |
+| `/trocas` | POST | Criar solicitação de troca entre alunos |
+| `/trocas/alunos-disponiveis/{alunoId}` | GET | Listar alunos com resgates ativos (excluindo o próprio) |
+| `/trocas/recebidas/{alunoId}` | GET | Listar trocas recebidas pelo aluno |
+| `/trocas/enviadas/{alunoId}` | GET | Listar trocas enviadas pelo aluno |
+| `/trocas/{id}/aceitar` | PATCH | Aceitar troca (transfere posse dos resgates) |
+| `/trocas/{id}/recusar` | PATCH | Recusar troca |
+| `/trocas/{id}/cancelar` | PATCH | Cancelar troca pendente (pelo solicitante) |
 
 Documentação completa: `BrainCoins_API.postman_collection.json`
 
@@ -133,8 +140,10 @@ Documentação completa: `BrainCoins_API.postman_collection.json`
 | `EmpresaEntity` | id, email (unique), cnpj (unique) | 1:N Vantagem |
 | `VantagemEntity` | id, empresa_id (FK), custo, estoque, ativo | N:M Aluno (via Resgate) |
 | `ResgateEntity` | id, aluno_id (FK), vantagem_id (FK), codigoCupom (unique), status | — |
+| `TrocaEntity` | id, aluno_solicitante_id (FK), aluno_destinatario_id (FK), resgate_oferecido_id (FK), resgate_desejado_id (FK), dataSolicitacao, status | N:M AlunoEntity (via resgates trocados) |
 
 Status de resgate: `ATIVO → PENDENTE → {APROVADO, REJEITADO}`
+Status de troca: `PENDENTE → {ACEITA, RECUSADA, CANCELADA, EXPIRADA}` (expiração automática após 15 dias)
 
 ---
 
@@ -144,7 +153,7 @@ Status de resgate: `ATIVO → PENDENTE → {APROVADO, REJEITADO}`
 |------|-----------|
 | `/` | Landing |
 | `/auth/$role` | Login dinâmico |
-| `/aluno/*` | Dashboard, perfil, extrato, vantagens, resgates |
+| `/aluno/*` | Dashboard, perfil, extrato, vantagens, resgates, trocas |
 | `/professor/*` | Dashboard, distribuir moedas, extrato |
 | `/empresa/*` | Dashboard, vantagens, resgates |
 | `/instituicao/*` | Dashboard admin, gerenciar professores, upload |
@@ -215,8 +224,11 @@ cd code/backend/moeda
 - Saldo como campo direto (não calculado) — simplifica queries, requer atenção a concorrência
 - TanStack Router: type-safe, tipagem automática de rotas
 - Radix UI: headless, totalmente customizável com Tailwind
-- `@EnableAsync` e `@EnableScheduling`: Reset semestral + expiração de resgates
-- **Envio de e-mails** via Spring Mail + Mailtrap: notificações disparadas em `TransacaoService` (recebimento de moedas) e `ResgateService` (cupom de vantagem) — chamadas `@Async` para não bloquear a request
+- `@EnableAsync` e `@EnableScheduling`: Reset semestral + expiração de resgates (`ResgateScheduler`) + expiração de trocas pendentes (`TrocaScheduler`, cron diário à meia-noite, 15 dias)
+- **Envio de e-mails** via Spring Mail + Mailtrap: todas as notificações são `@Async` (não bloqueiam a request) e falham silenciosamente com log de erro quando o SMTP não está configurado. Eventos cobertos por serviço:
+  - `TransacaoService`: aluno recebe moedas; professor confirma envio
+  - `ResgateService`: aluno recebe cupom; empresa é notificada de novo resgate; aluno é notificado quando resgate expira (reembolso automático)
+  - `TrocaService`: destinatário recebe nova solicitação; solicitante recebe aceite; aceitante confirma aceite; solicitante recebe recusa; destinatário recebe cancelamento (pelo solicitante); solicitante recebe notificação de expiração por prazo
 - Design tokens centralizados em `styles.css` (`@theme inline`) — toda paleta/tipografia consumida via utilitários Tailwind, não hardcoded
 - `DataSeeder` (`config/`) cria automaticamente uma Instituição "PUC Minas" no boot se a tabela estiver vazia — usada pelo botão "Entrar (demo)" da Instituição na landing
 - `AuthController` invalida sessão stale: ao acessar `/auth/$role` com outra role já logada, o `AuthPage` chama `store.logout()` antes do novo login
@@ -276,3 +288,4 @@ npm run build
 | **Vantagem** | Produto/serviço da empresa por moedas |
 | **Resgate** | Troca de moedas por vantagem (gera cupom) |
 | **Cupom** | Código único para retirar a vantagem |
+| **Troca** | Permuta de resgates ativos entre dois alunos (sem troca de moedas) |

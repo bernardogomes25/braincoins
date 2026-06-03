@@ -84,24 +84,36 @@ export type StatusKind =
   | "retirado"
   | "pendente"
   | "esgotado"
-  | "inativo";
+  | "inativo"
+  | "aceita"
+  | "recusada"
+  | "cancelada"
+  | "expirada";
 
 const statusStyles: Record<StatusKind, string> = {
-  ativo:    "bg-emerald/10 text-emerald border-emerald/30",
-  expirado: "bg-secondary text-muted-foreground border-border",
-  retirado: "bg-coin/10 text-coin border-coin/25",
-  pendente: "bg-warning/10 text-warning border-warning/30",
-  esgotado: "bg-coral/10 text-coral border-coral/30",
-  inativo:  "bg-secondary text-muted-foreground border-border",
+  ativo:     "bg-emerald/10 text-emerald border-emerald/30",
+  expirado:  "bg-secondary text-muted-foreground border-border",
+  retirado:  "bg-coin/10 text-coin border-coin/25",
+  pendente:  "bg-warning/10 text-warning border-warning/30",
+  esgotado:  "bg-coral/10 text-coral border-coral/30",
+  inativo:   "bg-secondary text-muted-foreground border-border",
+  aceita:    "bg-emerald/10 text-emerald border-emerald/30",
+  recusada:  "bg-coral/10 text-coral border-coral/30",
+  cancelada: "bg-secondary text-muted-foreground border-border",
+  expirada:  "bg-secondary text-muted-foreground border-border",
 };
 
 const statusLabels: Record<StatusKind, string> = {
-  ativo:    "Ativo",
-  expirado: "Expirado",
-  retirado: "Retirado",
-  pendente: "Pendente",
-  esgotado: "Esgotado",
-  inativo:  "Inativo",
+  ativo:     "Ativo",
+  expirado:  "Expirado",
+  retirado:  "Retirado",
+  pendente:  "Pendente",
+  esgotado:  "Esgotado",
+  inativo:   "Inativo",
+  aceita:    "Aceita",
+  recusada:  "Recusada",
+  cancelada: "Cancelada",
+  expirada:  "Expirada",
 };
 
 export function StatusBadge({ status }: { status: StatusKind }) {

@@ -10,4 +10,5 @@ public interface ResgateRepository extends JpaRepository<ResgateEntity, Integer>
     List<ResgateEntity> findByAlunoIdOrderByDataResgateDesc(int alunoId);
     List<ResgateEntity> findByStatusAndDataResgateBefore(StatusResgate status, LocalDateTime limite);
     List<ResgateEntity> findByVantagem_Empresa_IdOrderByDataResgateDesc(int empresaId);
+    List<ResgateEntity> findByStatus(StatusResgate status);
 }

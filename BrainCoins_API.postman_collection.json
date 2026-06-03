@@ -592,6 +592,106 @@
       ]
     },
     {
+      "name": "🔄 Trocas",
+      "item": [
+        {
+          "name": "Criar solicitação de troca",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"solicitanteId\": {{alunoId}},\n  \"destinatarioId\": {{destinatarioId}},\n  \"resgateOferecidoId\": {{resgateOferecidoId}},\n  \"resgateDesejadoId\": {{resgateDesejadoId}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/trocas",
+              "host": ["{{base_url}}"],
+              "path": ["trocas"]
+            },
+            "description": "Aluno solicita uma troca de resgates com outro aluno.\n\nRegras de negócio:\n- Ambos os resgates devem estar com status `ATIVO`\n- O solicitante deve ser dono do `resgateOferecidoId`\n- O destinatário deve ser dono do `resgateDesejadoId`\n- Não é possível solicitar troca consigo mesmo\n- Os resgates envolvidos ficam com status `PENDENTE` enquanto a troca aguarda resposta\n- A troca expira automaticamente após 15 dias (via `TrocaScheduler`)\n\nRetorna 201 Created com os dados da troca criada."
+          }
+        },
+        {
+          "name": "Listar alunos disponíveis para troca",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trocas/alunos-disponiveis/{{alunoId}}",
+              "host": ["{{base_url}}"],
+              "path": ["trocas", "alunos-disponiveis", "{{alunoId}}"]
+            },
+            "description": "Retorna a lista de alunos que possuem resgates ativos, excluindo o próprio aluno.\n\nCada item contém:\n- `alunoId`, `nome`, `curso`\n- `resgatesAtivos`: lista de `{ resgateId, vantagemNome, empresaNome }`\n\nUsado para popular o formulário de nova solicitação de troca."
+          }
+        },
+        {
+          "name": "Listar trocas recebidas pelo aluno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trocas/recebidas/{{alunoId}}",
+              "host": ["{{base_url}}"],
+              "path": ["trocas", "recebidas", "{{alunoId}}"]
+            },
+            "description": "Retorna todas as trocas em que o aluno é o destinatário (recebeu uma solicitação).\n\nStatus possíveis: `PENDENTE`, `ACEITA`, `RECUSADA`, `CANCELADA`, `EXPIRADA`."
+          }
+        },
+        {
+          "name": "Listar trocas enviadas pelo aluno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trocas/enviadas/{{alunoId}}",
+              "host": ["{{base_url}}"],
+              "path": ["trocas", "enviadas", "{{alunoId}}"]
+            },
+            "description": "Retorna todas as trocas em que o aluno é o solicitante (enviou uma solicitação).\n\nStatus possíveis: `PENDENTE`, `ACEITA`, `RECUSADA`, `CANCELADA`, `EXPIRADA`."
+          }
+        },
+        {
+          "name": "Aceitar troca",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trocas/{{trocaId}}/aceitar",
+              "host": ["{{base_url}}"],
+              "path": ["trocas", "{{trocaId}}", "aceitar"]
+            },
+            "description": "Destinatário aceita a solicitação de troca.\n\nEfeitos:\n- A posse dos resgates é transferida entre os alunos\n- Status da troca → `ACEITA`\n- Status dos resgates → `ATIVO` (sob nova posse)\n\nErro: 400 se a troca não estiver com status `PENDENTE`."
+          }
+        },
+        {
+          "name": "Recusar troca",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trocas/{{trocaId}}/recusar",
+              "host": ["{{base_url}}"],
+              "path": ["trocas", "{{trocaId}}", "recusar"]
+            },
+            "description": "Destinatário recusa a solicitação de troca.\n\nEfeitos:\n- Status da troca → `RECUSADA`\n- Ambos os resgates voltam ao status `ATIVO`\n\nErro: 400 se a troca não estiver com status `PENDENTE`."
+          }
+        },
+        {
+          "name": "Cancelar troca (solicitante)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trocas/{{trocaId}}/cancelar",
+              "host": ["{{base_url}}"],
+              "path": ["trocas", "{{trocaId}}", "cancelar"]
+            },
+            "description": "Solicitante cancela sua própria solicitação de troca pendente.\n\nEfeitos:\n- Status da troca → `CANCELADA`\n- Ambos os resgates voltam ao status `ATIVO`\n\nErro: 400 se a troca não estiver com status `PENDENTE`."
+          }
+        }
+      ]
+    },
+    {
       "name": "💳 Transações",
       "item": [
         {
@@ -743,6 +843,26 @@
     {
       "key": "adminValor",
       "value": "1000",
+      "type": "string"
+    },
+    {
+      "key": "trocaId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "destinatarioId",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "resgateOferecidoId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "resgateDesejadoId",
+      "value": "2",
       "type": "string"
     }
   ]
