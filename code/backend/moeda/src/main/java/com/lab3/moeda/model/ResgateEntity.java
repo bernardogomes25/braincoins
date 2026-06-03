@@ -59,4 +59,6 @@ public class ResgateEntity {
     public StatusResgate getStatus() { return status; }
 
     public void setStatus(StatusResgate status) { this.status = status; }
+
+    public void setAluno(AlunoEntity aluno) { this.aluno = aluno; }
 }

@@ -3,7 +3,7 @@
 
 ![Java](https://img.shields.io/badge/Java-21-007ec6?style=for-the-badge&logo=openjdk&logoColor=white) ![Maven](https://img.shields.io/badge/Maven-4.0.0-007ec6?style=for-the-badge&logo=apachemaven&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-007ec6?style=for-the-badge&logo=springboot&logoColor=white) ![React](https://img.shields.io/badge/React-19.2.5-007ec6?style=for-the-badge&logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-8.0.9-007ec6?style=for-the-badge&logo=vite&logoColor=white) ![GitHub repo size](https://img.shields.io/github/repo-size/jalv21/braincoins?style=for-the-badge&logo=files) ![GitHub directory file count](https://img.shields.io/github/directory-file-count/jalv21/braincoins?style=for-the-badge&logo=files) ![GitHub stars](https://img.shields.io/github/stars/jalv21/braincoins?style=for-the-badge&logo=github) ![GitHub forks](https://img.shields.io/github/forks/jalv21/braincoins?style=for-the-badge&logo=git) ![GitHub language count](https://img.shields.io/github/languages/count/jalv21/braincoins?style=for-the-badge&logo=python) ![GitHub license](https://img.shields.io/github/license/jalv21/braincoins?style=for-the-badge&color=007ec6&logo=opensourceinitiative) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/jalv21/braincoins?style=for-the-badge&color=007ec6&logo=gitkraken) ![GitHub last commit](https://img.shields.io/github/last-commit/jalv21/braincoins?style=for-the-badge&logo=clockify) ![Views Counter](https://views-counter.vercel.app/badge?pageId=https%3A%2F%2Fgithub%2Ecom%2Fjalv21%2Fbraincoins&leftColor=555555&rightColor=007ec6&type=total&label=RepoViews)
 
-Um sistema gamificado de moeda estudantil em que professores podem reconhecer o mérito dos seus alunos através de moedas virtuais que podem ser trocadas por diversas vantagens, oferecidas por empresas parceiras. Gerencia transferência de moedas de professores para alunos, reivindicação e resgate de vantagens por alunos. Desenvolvido com **Spring Boot**, **React** e **Vite**. 
+Um sistema gamificado de moeda estudantil em que professores podem reconhecer o mérito dos seus alunos através de moedas virtuais que podem ser trocadas por diversas vantagens, oferecidas por empresas parceiras. Gerencia transferência de moedas de professores para alunos, reivindicação e resgate de vantagens por alunos, e **troca de resgates ativos entre alunos**. Desenvolvido com **Spring Boot**, **React** e **Vite**. 
 
 ---
 
@@ -70,7 +70,8 @@ BrainCoins é um sistema de moeda estudantil desenvolvido como projeto acadêmic
 - 📊 **Visualizar Saldo:** Consultar saldo atual de moedas
 - 📜 **Histórico de Transações:** Ver todas as moedas recebidas de professores
 - 🛍️ **Resgatar Vantagens:** Trocar moedas por benefícios oferecidos por empresas
-- 📱 **Notificações:** Receber email ao ganhar moedas e ao resgatar vantagens
+- 🔄 **Trocar Resgates:** Propor e aceitar trocas de resgates ativos com outros alunos (sem custo em moedas)
+- 📱 **Notificações:** Receber email ao ganhar moedas, ao resgatar vantagens e ao receber/aceitar propostas de troca
 
 ### 👨‍🏫 Para Professores
 - 🔐 **Login Seguro:** Acesso com email e senha criptografada
@@ -162,6 +163,22 @@ BrainCoins é um sistema de moeda estudantil desenvolvido como projeto acadêmic
 2. Empresa cria nova vantagem (nome, descrição, custo em moedas, estoque)
 3. Vantagem fica disponível para alunos
 4. Empresa gerencia estoque e resgates
+
+### HU-06: Aluno Troca Resgate com Outro Aluno
+**Como** um aluno  
+**Desejo** trocar um resgate ativo que tenho por um resgate ativo de outro aluno  
+**Para que** eu possa obter uma vantagem que prefiro sem gastar moedas adicionais  
+
+**Fluxo:**
+1. Aluno A acessa a seção de Trocas
+2. Aluno A visualiza alunos com resgates ativos disponíveis
+3. Aluno A seleciona um resgate do Aluno B que deseja e oferece um resgate seu
+4. Sistema cria solicitação `PENDENTE` e notifica Aluno B por email
+5. Aluno B aceita a troca
+6. Sistema revalida que ambos resgates ainda estão ativos (primeira aceita vence)
+7. Sistema transfere a posse: o cupom de A vai para B e vice-versa
+8. Ambos são notificados por email
+9. Proposta não respondida expira automaticamente após 15 dias
 
 ### HU-05: Instituição Monitora Sistema
 **Como** gestor da instituição  
@@ -279,10 +296,18 @@ A arquitetura usada no projeto foi a **Arquitetura em Camadas** usando o Padrão
 - `alunoId`: FK para Aluno
 - `vantagemId`: FK para Vantagem
 - `empresaId`: FK para Empresa
-- `codigoConfirmacao`: Código único para validação
-- `status`: PENDENTE, APROVADO, REJEITADO
-- `dataSolicitacao`: Data de solicitação
-- `dataAprovacao`: Data de aprovação
+- `codigoCupom`: Código único para validação
+- `status`: ATIVO, PENDENTE, APROVADO, REJEITADO
+- `dataResgate`: Data de solicitação
+
+**Troca** (Aluno ↔ Aluno, via resgates)
+- `id`: ID único (PK)
+- `alunoSolicitanteId`: FK para Aluno que propõe a troca
+- `alunoDestinatarioId`: FK para Aluno que deve aceitar
+- `resgateOferecidoId`: FK para Resgate ATIVO do solicitante
+- `resgateDesejadoId`: FK para Resgate ATIVO do destinatário
+- `dataSolicitacao`: Timestamp da proposta
+- `status`: PENDENTE, ACEITA, RECUSADA, CANCELADA, EXPIRADA (expira após 15 dias)
 
 ### Componentes Principais
 
@@ -402,7 +427,7 @@ A arquitetura usada no projeto foi a **Arquitetura em Camadas** usando o Padrão
 
 | Perfil | Ações Permitidas |
 |:---:|:---|
-| **Aluno** | Login, Visualizar saldo, Histórico de transações, Resgatar vantagens, Visualizar vantagens |
+| **Aluno** | Login, Visualizar saldo, Histórico de transações, Resgatar vantagens, Visualizar vantagens, Trocar resgates com outros alunos |
 | **Professor** | Login, Distribuir moedas para alunos, Visualizar histórico de distribuições, Selecionar alunos |
 | **Empresa** | Login, Criar/atualizar/deletar vantagens, Gerenciar estoque, Aprovar resgates, Receber notificações |
 | **Instituição** | Login, Visualizar métricas gerais, Monitorar movimentação de moedas, Configurações |
@@ -780,6 +805,17 @@ GET /api/vantagem                # Listar vantagens disponíveis
 POST /api/vantagem               # Criar nova vantagem
 PUT /api/vantagem/{id}           # Atualizar vantagem
 GET /api/vantagem/{id}/redeem    # Resgatar vantagem
+```
+
+#### Trocas de Resgates (Aluno ↔ Aluno)
+```bash
+POST /api/trocas                              # Propor troca
+GET  /api/trocas/alunos-disponiveis/{alunoId} # Alunos com resgates ativos
+GET  /api/trocas/recebidas/{alunoId}          # Propostas recebidas
+GET  /api/trocas/enviadas/{alunoId}           # Propostas enviadas
+PATCH /api/trocas/{id}/aceitar               # Aceitar troca
+PATCH /api/trocas/{id}/recusar               # Recusar troca
+PATCH /api/trocas/{id}/cancelar              # Cancelar proposta
 ```
 
 ### 💻 Testando com Postman

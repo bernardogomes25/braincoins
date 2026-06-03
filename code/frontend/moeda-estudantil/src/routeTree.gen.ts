@@ -29,6 +29,7 @@ import { Route as EmpresaResgatesRouteImport } from './routes/empresa.resgates'
 import { Route as EmpresaPerfilRouteImport } from './routes/empresa.perfil'
 import { Route as AuthRoleRouteImport } from './routes/auth.$role'
 import { Route as AlunoVantagensRouteImport } from './routes/aluno.vantagens'
+import { Route as AlunoTrocasRouteImport } from './routes/aluno.trocas'
 import { Route as AlunoResgatesRouteImport } from './routes/aluno.resgates'
 import { Route as AlunoPerfilRouteImport } from './routes/aluno.perfil'
 import { Route as AlunoExtratoRouteImport } from './routes/aluno.extrato'
@@ -133,6 +134,11 @@ const AlunoVantagensRoute = AlunoVantagensRouteImport.update({
   path: '/vantagens',
   getParentRoute: () => AlunoRoute,
 } as any)
+const AlunoTrocasRoute = AlunoTrocasRouteImport.update({
+  id: '/trocas',
+  path: '/trocas',
+  getParentRoute: () => AlunoRoute,
+} as any)
 const AlunoResgatesRoute = AlunoResgatesRouteImport.update({
   id: '/resgates',
   path: '/resgates',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/aluno/extrato': typeof AlunoExtratoRoute
   '/aluno/perfil': typeof AlunoPerfilRoute
   '/aluno/resgates': typeof AlunoResgatesRoute
+  '/aluno/trocas': typeof AlunoTrocasRoute
   '/aluno/vantagens': typeof AlunoVantagensRoute
   '/auth/$role': typeof AuthRoleRoute
   '/empresa/perfil': typeof EmpresaPerfilRoute
@@ -179,6 +186,7 @@ export interface FileRoutesByTo {
   '/aluno/extrato': typeof AlunoExtratoRoute
   '/aluno/perfil': typeof AlunoPerfilRoute
   '/aluno/resgates': typeof AlunoResgatesRoute
+  '/aluno/trocas': typeof AlunoTrocasRoute
   '/aluno/vantagens': typeof AlunoVantagensRoute
   '/auth/$role': typeof AuthRoleRoute
   '/empresa/perfil': typeof EmpresaPerfilRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/aluno/extrato': typeof AlunoExtratoRoute
   '/aluno/perfil': typeof AlunoPerfilRoute
   '/aluno/resgates': typeof AlunoResgatesRoute
+  '/aluno/trocas': typeof AlunoTrocasRoute
   '/aluno/vantagens': typeof AlunoVantagensRoute
   '/auth/$role': typeof AuthRoleRoute
   '/empresa/perfil': typeof EmpresaPerfilRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/aluno/extrato'
     | '/aluno/perfil'
     | '/aluno/resgates'
+    | '/aluno/trocas'
     | '/aluno/vantagens'
     | '/auth/$role'
     | '/empresa/perfil'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/aluno/extrato'
     | '/aluno/perfil'
     | '/aluno/resgates'
+    | '/aluno/trocas'
     | '/aluno/vantagens'
     | '/auth/$role'
     | '/empresa/perfil'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/aluno/extrato'
     | '/aluno/perfil'
     | '/aluno/resgates'
+    | '/aluno/trocas'
     | '/aluno/vantagens'
     | '/auth/$role'
     | '/empresa/perfil'
@@ -446,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlunoVantagensRouteImport
       parentRoute: typeof AlunoRoute
     }
+    '/aluno/trocas': {
+      id: '/aluno/trocas'
+      path: '/trocas'
+      fullPath: '/aluno/trocas'
+      preLoaderRoute: typeof AlunoTrocasRouteImport
+      parentRoute: typeof AlunoRoute
+    }
     '/aluno/resgates': {
       id: '/aluno/resgates'
       path: '/resgates'
@@ -474,6 +493,7 @@ interface AlunoRouteChildren {
   AlunoExtratoRoute: typeof AlunoExtratoRoute
   AlunoPerfilRoute: typeof AlunoPerfilRoute
   AlunoResgatesRoute: typeof AlunoResgatesRoute
+  AlunoTrocasRoute: typeof AlunoTrocasRoute
   AlunoVantagensRoute: typeof AlunoVantagensRoute
   AlunoIndexRoute: typeof AlunoIndexRoute
 }
@@ -482,6 +502,7 @@ const AlunoRouteChildren: AlunoRouteChildren = {
   AlunoExtratoRoute: AlunoExtratoRoute,
   AlunoPerfilRoute: AlunoPerfilRoute,
   AlunoResgatesRoute: AlunoResgatesRoute,
+  AlunoTrocasRoute: AlunoTrocasRoute,
   AlunoVantagensRoute: AlunoVantagensRoute,
   AlunoIndexRoute: AlunoIndexRoute,
 }
@@ -552,12 +573,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
