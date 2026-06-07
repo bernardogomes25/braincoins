@@ -72,6 +72,7 @@ group UC03 — Criar Conta (Empresa)
     activate Frontend
     Frontend -> Frontend : validação local\n(campos obrigatórios, CNPJ regex)
     Frontend -> EmpresaController : POST /empresas\n{nome, email, cnpj, senha, descricao}
+    activate EmpresaController
     EmpresaController -> EmpresaService : cadastrarEmpresa(EmpresaRequestDTO)
     EmpresaService -> EmpresaService : validarCNPJ(cnpj)
     EmpresaService -> PostgreSQL : existePorEmail(email) → false
@@ -86,6 +87,7 @@ group UC03 — Criar Conta (Empresa)
     alt Email ou CNPJ já cadastrado
         PostgreSQL --> EmpresaService : DataIntegrityViolationException
         EmpresaController --> Frontend : 409 "Email/CNPJ já cadastrado."
+        deactivate EmpresaController
         Frontend --> Empresa : exibe mensagem de conflito
         deactivate Frontend
     end
