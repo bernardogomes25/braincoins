@@ -1,0 +1,385 @@
+@startuml ds-geral-moeda-estudantil
+autonumber
+skinparam style strictuml
+skinparam sequenceGroupBorderThickness 1
+skinparam sequenceGroupBorderColor #888
+skinparam sequenceGroupBodyBackgroundColor transparent
+
+' ── Atores ───────────────────────────────
+actor       Aluno              as "Aluno"
+actor       Professor          as "Professor"
+actor       Instituicao        as "Instituição"
+actor       Empresa            as "Empresa"
+
+' ── Participantes ────────────────────────
+participant Frontend           as "Frontend"
+participant AuthController     as "AuthController"
+participant AlunoController    as "AlunoController"
+participant EmpresaController  as "EmpresaController"
+participant InstituicaoCtrl    as "InstituicaoController"
+participant TransacaoCtrl      as "TransacaoController"
+participant VantagemController as "VantagemController"
+participant ResgateController  as "ResgateController"
+
+participant AuthService        as "AuthService"
+participant AlunoService       as "AlunoService"
+participant EmpresaService     as "EmpresaService"
+participant InstituicaoService as "InstituicaoService"
+participant ProfessorService   as "ProfessorService"
+participant TransacaoService   as "TransacaoService"
+participant VantagemService    as "VantagemService"
+participant ResgateService     as "ResgateService"
+participant EmailService        as "EmailService\n(@Async)"
+
+participant SemestreScheduler  as "SemestreScheduler\n(@Scheduled)"
+participant ResgateScheduler   as "ResgateScheduler\n(@Scheduled)"
+participant MailtrapSMTP       as "Mailtrap SMTP"
+
+database    PostgreSQL         as "PostgreSQL"
+
+' ════════════════════════════════════════════════════════════
+' BLOCO 1 — CADASTRO E AUTENTICAÇÃO
+' ════════════════════════════════════════════════════════════
+group UC02 — Criar Conta (Aluno)
+    Aluno -> Frontend : preenche nome, email, CPF,\nsenha, curso, instituição
+    activate Frontend
+    Frontend -> Frontend : validação local\n(campos obrigatórios, CPF regex)
+    Frontend -> AlunoController : POST /alunos\n{nome, email, cpf, senha, curso, instituicaoId}
+    AlunoController -> AlunoService : cadastrarAluno(AlunoRequestDTO)
+    AlunoService -> AlunoService : validarCPF(cpf)
+    AlunoService -> PostgreSQL : existePorEmail(email) → false
+    AlunoService -> PostgreSQL : existePorCPF(cpf) → false
+    AlunoService -> AlunoService : BCrypt.encode(senha)
+    AlunoService -> PostgreSQL : save(AlunoEntity {saldo=0})
+    PostgreSQL --> AlunoService : AlunoEntity {id}
+    AlunoService --> AlunoController : AlunoResponseDTO
+    AlunoController --> Frontend : 201 Created
+    Frontend --> Aluno : exibe sucesso e redireciona para login
+
+    alt Email ou CPF já cadastrado
+        PostgreSQL --> AlunoService : DataIntegrityViolationException
+        AlunoService --> AlunoController : 409 Conflict
+        AlunoController --> Frontend : 409 "Email/CPF já cadastrado."
+        Frontend --> Aluno : exibe mensagem de conflito
+        deactivate Frontend
+    end
+end
+
+group UC03 — Criar Conta (Empresa)
+    Empresa -> Frontend : preenche nome, email, CNPJ,\nsenha, descrição, endereço
+    activate Frontend
+    Frontend -> Frontend : validação local\n(campos obrigatórios, CNPJ regex)
+    Frontend -> EmpresaController : POST /empresas\n{nome, email, cnpj, senha, descricao}
+    EmpresaController -> EmpresaService : cadastrarEmpresa(EmpresaRequestDTO)
+    EmpresaService -> EmpresaService : validarCNPJ(cnpj)
+    EmpresaService -> PostgreSQL : existePorEmail(email) → false
+    EmpresaService -> PostgreSQL : existePorCNPJ(cnpj) → false
+    EmpresaService -> EmpresaService : BCrypt.encode(senha)
+    EmpresaService -> PostgreSQL : save(EmpresaEntity)
+    PostgreSQL --> EmpresaService : EmpresaEntity {id}
+    EmpresaService --> EmpresaController : EmpresaResponseDTO
+    EmpresaController --> Frontend : 201 Created
+    Frontend --> Empresa : exibe sucesso e redireciona para login
+
+    alt Email ou CNPJ já cadastrado
+        PostgreSQL --> EmpresaService : DataIntegrityViolationException
+        EmpresaController --> Frontend : 409 "Email/CNPJ já cadastrado."
+        Frontend --> Empresa : exibe mensagem de conflito
+        deactivate Frontend
+    end
+end
+
+group UC04 — Pré-cadastrar Instituição via CSV
+    Instituicao -> Frontend : seleciona arquivo CSV\n(nome, email, departamento, disciplina…)
+    activate Frontend
+    Frontend -> InstituicaoCtrl : POST /instituicoes/upload-csv\n{multipart: arquivo.csv}
+    InstituicaoCtrl -> InstituicaoService : processarCSV(arquivo, instituicaoId)
+    InstituicaoService -> InstituicaoService : parsearLinhasCSV(arquivo)
+
+    loop Para cada linha do CSV [UC05]
+        InstituicaoService -> InstituicaoService : extrairDados(linhaCSV)
+        InstituicaoService -> InstituicaoService : gerarSenhaTemporaria()
+        InstituicaoService -> ProfessorService : cadastrarProfessor(ProfessorRequestDTO)
+        ProfessorService -> ProfessorService : validarCPF(cpf)
+        ProfessorService -> PostgreSQL : existePorEmail(email) → false
+        ProfessorService -> ProfessorService : BCrypt.encode(senhaTemporaria)
+        ProfessorService -> PostgreSQL : save(ProfessorEntity {saldo=0, instituicaoId})
+        PostgreSQL --> ProfessorService : ProfessorEntity {id}
+        ProfessorService --> InstituicaoService : ProfessorResponseDTO
+        InstituicaoService -> EmailService : enviarEmailCredenciais\n(email, senhaTemporaria) [async]
+        EmailService -> EmailService : montarTemplate(email, credenciais)
+        EmailService -> MailtrapSMTP : SMTP.send()
+        MailtrapSMTP --> Instituicao : e-mail com login e senha temporária
+
+        alt Linha com dados inválidos (CPF/email duplicado)
+            PostgreSQL --> ProfessorService : DataIntegrityViolationException
+            InstituicaoService -> InstituicaoService : registra erro no relatório\ne continua para próxima linha
+        end
+    end
+
+    InstituicaoService --> InstituicaoCtrl : relatorioCadastro {total, sucessos, falhas}
+    InstituicaoCtrl --> Frontend : 200 OK + relatório
+    Frontend --> Instituicao : exibe resumo do processamento
+    deactivate Frontend
+end
+
+group UC01 — Cadastrar Login e Senha (Autenticação)
+    Aluno -> Frontend : preenche email e senha
+    activate Frontend
+    Frontend -> AuthController : POST /login/{role}
+    AuthController -> AuthService : autenticar(email, senha, role)
+    AuthService -> PostgreSQL : buscarUsuarioPorEmail(email, role)
+    PostgreSQL --> AuthService : UsuarioEntity
+
+    alt Usuário não encontrado
+        AuthService --> AuthController : NoSuchElementException
+        AuthController --> Frontend : 404 "Usuário não encontrado."
+        Frontend --> Aluno : exibe mensagem de erro
+    else Senha incorreta
+        AuthService -> AuthService : BCrypt.matches(senha, hash) → false
+        AuthService --> AuthController : SenhaIncorretaException
+        AuthController --> Frontend : 401 "Senha incorreta."
+        Frontend --> Aluno : exibe mensagem de erro
+    else Credenciais válidas
+        AuthService -> AuthService : BCrypt.matches(senha, hash) → true
+        AuthService --> AuthController : UsuarioResponseDTO
+        AuthController --> Frontend : 200 OK + {id, nome, email, role}
+        Frontend -> Frontend : store.setUser(dados)
+        Frontend --> Aluno : redireciona para dashboard do perfil
+        deactivate Frontend
+    end
+end
+
+' ════════════════════════════════════════════════════════════
+' BLOCO 2 — GESTÃO DE MOEDAS
+' ════════════════════════════════════════════════════════════
+group UC06 — Receber Moedas Semestrais (Professor)
+    SemestreScheduler -> ProfessorService : resetarSaldosTodosProfessores()
+    note right : executa automaticamente\na cada semestre via @Scheduled
+    ProfessorService -> PostgreSQL : findAll(ProfessorEntity)
+    PostgreSQL --> ProfessorService : List<ProfessorEntity>
+
+    loop Para cada professor
+        ProfessorService -> ProfessorService : professor.setSaldo(1000)
+        ProfessorService -> PostgreSQL : save(professor)
+        PostgreSQL --> ProfessorService : ProfessorEntity atualizado
+    end
+
+    ProfessorService --> SemestreScheduler : totalProfessoresAtualizados
+end
+
+group UC07 — Distribuir Moedas (Professor → Aluno)
+    Professor -> Frontend : seleciona aluno, informa\nquantidade e motivo
+    activate Frontend
+    Frontend -> Frontend : validação local\n(quantidade > 0, aluno selecionado)
+    Frontend -> TransacaoCtrl : POST /transacoes\n{professorId, alunoId, quantidade, descricao}
+    TransacaoCtrl -> TransacaoService : criarTransacao(TransacaoRequestDTO)
+    TransacaoService -> PostgreSQL : findById(professorId) → ProfessorEntity {saldo}
+
+    alt Saldo insuficiente [UC08]
+        TransacaoService --> TransacaoCtrl : SaldoInsuficienteException
+        TransacaoCtrl --> Frontend : 400 "Saldo insuficiente."
+        Frontend --> Professor : exibe mensagem de erro
+    else Saldo suficiente
+        TransacaoService -> PostgreSQL : findById(alunoId) → AlunoEntity
+        TransacaoService -> TransacaoService : professor.setSaldo(saldo - quantidade)
+        TransacaoService -> PostgreSQL : save(professor)
+        TransacaoService -> TransacaoService : aluno.setSaldo(saldo + quantidade)
+        TransacaoService -> PostgreSQL : save(aluno)
+        TransacaoService -> PostgreSQL : save(TransacaoEntity\n{professor, aluno, quantidade, descricao, data})
+        PostgreSQL --> TransacaoService : TransacaoEntity {id}
+
+        ' UC11 — Notificar Aluno por E-mail
+        TransacaoService -> EmailService : enviarEmailRecebimento(\naluno.email, professor.nome,\nquantidade, descricao) [async — UC11]
+        EmailService -> EmailService : montarTemplate()
+        EmailService -> MailtrapSMTP : SMTP.send()
+        MailtrapSMTP --> Aluno : e-mail de notificação de recebimento
+
+        alt Mailtrap indisponível
+            EmailService -> EmailService : log.error() [falha silenciosa]
+        end
+
+        TransacaoService --> TransacaoCtrl : TransacaoResponseDTO
+        TransacaoCtrl --> Frontend : 201 Created + TransacaoResponseDTO
+        Frontend --> Professor : exibe confirmação de envio
+        deactivate Frontend
+    end
+end
+
+group UC10 — Receber Moedas / Consultar Saldo (Aluno)
+    note over Aluno, PostgreSQL : Saldo incrementado em UC07.\n Este UC descreve a consulta do saldo atualizado.
+    Aluno -> Frontend : abre dashboard ou aba de saldo
+    activate Frontend
+    Frontend -> AlunoController : GET /alunos/{id}
+    AlunoController -> AlunoService : buscarAluno(id)
+    AlunoService -> PostgreSQL : findById(id)
+    PostgreSQL --> AlunoService : AlunoEntity {saldo, nome, …}
+    AlunoService --> AlunoController : AlunoResponseDTO
+    AlunoController --> Frontend : 200 OK + {saldo, nome, …}
+    Frontend --> Aluno : exibe saldo atual de moedas\ne histórico de recebimentos
+    deactivate Frontend
+end
+
+group UC09 — Consultar Extrato (Aluno / Professor)
+    Aluno -> Frontend : acessa aba "Extrato"
+    activate Frontend
+    Frontend -> TransacaoCtrl : GET /transacoes?alunoId={id}\nou GET /transacoes?professorId={id}
+    TransacaoCtrl -> TransacaoService : listarTransacoes(filtro)
+    TransacaoService -> PostgreSQL : findByAlunoId(id)\nou findByProfessorId(id)
+    PostgreSQL --> TransacaoService : List<TransacaoEntity>
+    TransacaoService --> TransacaoCtrl : List<TransacaoResponseDTO>
+    TransacaoCtrl --> Frontend : 200 OK + [lista de transações]
+    Frontend --> Aluno : renderiza tabela/histórico\n(data, valor, descrição, contraparte)
+
+    alt Nenhuma transação encontrada
+        PostgreSQL --> TransacaoService : []
+        TransacaoCtrl --> Frontend : 200 OK + []
+        Frontend --> Aluno : exibe "Nenhuma transação realizada."
+        deactivate Frontend
+    end
+end
+
+' ════════════════════════════════════════════════════════════
+' BLOCO 3 — VANTAGENS E RESGATES
+' ════════════════════════════════════════════════════════════
+group UC17 — Cadastrar Vantagem (Empresa)
+    Empresa -> Frontend : preenche nome, descrição, custo,\nestoque, foto e salva
+    activate Frontend
+    Frontend -> VantagemController : POST /vantagens\n{empresaId, nome, descricao, custo, estoque, foto, ativo}
+    VantagemController -> VantagemService : criarVantagem(VantagemRequestDTO)
+    VantagemService -> VantagemService : validar: custo > 0, estoque >= 0
+    VantagemService -> PostgreSQL : findById(empresaId) → EmpresaEntity
+    PostgreSQL --> VantagemService : empresa
+    VantagemService -> PostgreSQL : save(VantagemEntity\n{empresa, nome, descricao, custo, estoque, ativo=true})
+    PostgreSQL --> VantagemService : VantagemEntity {id}
+    VantagemService --> VantagemController : VantagemResponseDTO
+    VantagemController --> Frontend : 201 Created + VantagemResponseDTO
+    Frontend --> Empresa : vantagem exibida na listagem
+    deactivate Frontend
+end
+
+group UC12 — Resgatar Vantagem (Aluno)
+    Aluno -> Frontend : seleciona vantagem e confirma resgate
+    activate Frontend
+    Frontend -> VantagemController : POST /vantagens/resgatar\n{alunoId, vantagemId}
+    VantagemController -> ResgateService : resgatarVantagem(alunoId, vantagemId)
+    ResgateService -> PostgreSQL : findById(alunoId) → AlunoEntity {saldo}
+    ResgateService -> PostgreSQL : findById(vantagemId) → VantagemEntity {custo, estoque, ativo}
+
+    alt Vantagem inativa ou estoque esgotado [UC13 parcial]
+        ResgateService --> VantagemController : EstoqueEsgotadoException
+        VantagemController --> Frontend : 400 "Vantagem indisponível."
+        Frontend --> Aluno : exibe mensagem de erro
+    else Saldo insuficiente [UC13]
+        ResgateService --> VantagemController : SaldoInsuficienteException
+        VantagemController --> Frontend : 400 "Saldo insuficiente."
+        Frontend --> Aluno : exibe mensagem de erro
+    else Operação válida
+        ResgateService -> ResgateService : aluno.setSaldo(saldo - custo)
+        ResgateService -> PostgreSQL : save(aluno)
+        ResgateService -> ResgateService : vantagem.setEstoque(estoque - 1)
+        ResgateService -> PostgreSQL : save(vantagem)
+        ResgateService -> ResgateService : gerarCodigoCupom() → UUID único
+        ResgateService -> PostgreSQL : save(ResgateEntity\n{aluno, vantagem, cupom, status=PENDENTE, dataSolicitacao})
+        PostgreSQL --> ResgateService : ResgateEntity {id, codigoCupom}
+
+        ' UC14 — Enviar E-mail de Confirmação de Resgate
+        ResgateService -> EmailService : enviarEmailCupom(\nempresa.email, aluno.nome,\nvantagem.nome, codigoCupom) [async — UC14]
+        EmailService -> EmailService : montarTemplate(\n"Novo resgate de {aluno}\npara {vantagem}. Código: {cupom}")
+        EmailService -> MailtrapSMTP : send(MimeMessage)
+        MailtrapSMTP --> Empresa : e-mail com código de confirmação
+
+        alt Mailtrap indisponível
+            EmailService -> EmailService : log.error()\n[falha silenciosa — resgate já foi criado]
+        end
+
+        ResgateService --> VantagemController : ResgateResponseDTO {codigoCupom}
+        VantagemController --> Frontend : 201 Created + {codigoCupom}
+        Frontend --> Aluno : exibe código do cupom e instruções
+        deactivate Frontend
+    end
+end
+
+group UC18 — Confirmar Resgate (Empresa)
+    Empresa -> Frontend : acessa lista de resgates pendentes\ne localiza o código do aluno
+    activate Frontend
+    Frontend -> ResgateController : PATCH /resgates/{id}\n{status: "APROVADO"}
+    ResgateController -> ResgateService : atualizarStatusResgate(id, APROVADO)
+    ResgateService -> PostgreSQL : findById(id) → ResgateEntity {status: PENDENTE}
+    ResgateService -> ResgateService : verificar: resgate.status == PENDENTE
+    ResgateService -> ResgateService : resgate.setStatus(APROVADO)
+    ResgateService -> ResgateService : resgate.setDataAprovacao(now())
+    ResgateService -> PostgreSQL : save(resgate)
+    PostgreSQL --> ResgateService : ok
+    ResgateService -> EmailService : enviarEmailAprovacao(\naluno.email, vantagem.nome) [async]
+    EmailService -> MailtrapSMTP : SMTP.send()
+    ResgateService --> ResgateController : ResgateResponseDTO {status: APROVADO}
+    ResgateController --> Frontend : 200 OK + ResgateResponseDTO
+    Frontend --> Empresa : resgate marcado como Aprovado
+
+    alt Resgate não encontrado
+        PostgreSQL --> ResgateService : NoSuchElementException
+        ResgateController --> Frontend : 404 "Resgate não encontrado."
+        deactivate Frontend
+    end
+end
+
+group UC19 — Reembolsar Aluno (Empresa rejeita resgate)
+    Empresa -> Frontend : seleciona resgate pendente\ne clica "Rejeitar"
+    activate Frontend
+    Frontend -> ResgateController : PATCH /resgates/{id}\n{status: "REJEITADO"}
+    ResgateController -> ResgateService : atualizarStatusResgate(id, REJEITADO)
+    ResgateService -> PostgreSQL : findById(id) → ResgateEntity {aluno, vantagem, custo}
+    ResgateService -> ResgateService : resgate.setStatus(REJEITADO)
+    ResgateService -> PostgreSQL : save(resgate)
+    ResgateService -> ResgateService : aluno.setSaldo(saldo + vantagem.custo)
+    ResgateService -> PostgreSQL : save(aluno)
+    ResgateService -> ResgateService : vantagem.setEstoque(estoque + 1)
+    ResgateService -> PostgreSQL : save(vantagem)
+
+    ' UC16 — Comunicar Aluno via E-mail
+    ResgateService -> EmailService : enviarEmailReembolso(\naluno.email, vantagem.nome, custo)\n[async — UC16]
+    EmailService -> EmailService : montarTemplate(\n"Seu resgate de {vantagem} foi cancelado.\n{N} moedas foram devolvidas ao seu saldo.")
+    EmailService -> MailtrapSMTP : send(MimeMessage)
+    MailtrapSMTP --> Aluno : e-mail de notificação de reembolso
+
+    alt Mailtrap indisponível
+        EmailService -> EmailService : log.error() [falha silenciosa]
+    end
+
+    ResgateService --> ResgateController : ResgateResponseDTO {status: REJEITADO}
+    ResgateController --> Frontend : 200 OK + ResgateResponseDTO
+    Frontend --> Empresa : resgate marcado como Rejeitado
+    deactivate Frontend
+end
+
+' ════════════════════════════════════════════════════════════
+' BLOCO 4 — PROCESSOS AUTOMÁTICOS (SCHEDULERS)
+' ════════════════════════════════════════════════════════════
+group UC15 — Cancelar Resgate Expirado (@Scheduled)
+    ResgateScheduler -> ResgateService : cancelarResgatesExpirados()
+    note right : job agendado — verifica\nperiodicamente resgates expirados
+    ResgateService -> PostgreSQL : findAllByStatusAndDataSolicitacaoBefore(\nPENDENTE, dataLimite)
+    PostgreSQL --> ResgateService : List<ResgateEntity> resgatesExpirados
+
+    loop Para cada resgate expirado
+        ResgateService -> ResgateService : resgate.setStatus(REJEITADO)
+        ResgateService -> PostgreSQL : save(resgate)
+        PostgreSQL --> ResgateService : ok
+        ResgateService -> ResgateService : aluno.setSaldo(saldo + vantagem.custo)
+        ResgateService -> PostgreSQL : save(aluno)
+        PostgreSQL --> ResgateService : ok
+        ResgateService -> ResgateService : vantagem.setEstoque(estoque + 1)
+        ResgateService -> PostgreSQL : save(vantagem)
+        PostgreSQL --> ResgateService : ok
+
+        ' UC16 — Comunicar Aluno via E-mail (reembolso por expiração)
+        ResgateService -> EmailService : enviarEmailReembolso(\naluno.email, vantagem.nome, custo)\n[async — UC16]
+        EmailService -> MailtrapSMTP : send(MimeMessage)
+        MailtrapSMTP --> Aluno : e-mail de notificação de reembolso
+    end
+
+    ResgateService --> ResgateScheduler : totalCancelados
+end
+
+@enduml
