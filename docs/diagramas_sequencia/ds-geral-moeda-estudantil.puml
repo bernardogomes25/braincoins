@@ -171,6 +171,7 @@ end
 ' ════════════════════════════════════════════════════════════
 group UC06 — Receber Moedas Semestrais (Professor)
     SemestreScheduler -> ProfessorService : resetarSaldosTodosProfessores()
+    activate SemestreScheduler
     activate ProfessorService
     note right : executa automaticamente\na cada semestre via @Scheduled
     ProfessorService -> PostgreSQL : findAll(ProfessorEntity)
@@ -183,6 +184,7 @@ group UC06 — Receber Moedas Semestrais (Professor)
     end
 
     ProfessorService --> SemestreScheduler : totalProfessoresAtualizados
+    deactivate SemestreScheduler
     deactivate ProfessorService
 end
 
@@ -412,6 +414,7 @@ end
 ' ════════════════════════════════════════════════════════════
 group UC15 — Cancelar Resgate Expirado (@Scheduled)
     ResgateScheduler -> ResgateService : cancelarResgatesExpirados()
+    activate ResgateScheduler
     activate ResgateService
     note right : job agendado — verifica\nperiodicamente resgates expirados
     ResgateService -> PostgreSQL : findAllByStatusAndDataSolicitacaoBefore(\nPENDENTE, dataLimite)
@@ -437,6 +440,7 @@ group UC15 — Cancelar Resgate Expirado (@Scheduled)
     end
 
     ResgateService --> ResgateScheduler : totalCancelados
+    deactivate ResgateScheduler
     deactivate ResgateService
 end
 
