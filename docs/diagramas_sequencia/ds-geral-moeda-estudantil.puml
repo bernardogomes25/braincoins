@@ -320,6 +320,7 @@ group UC18 — Confirmar Resgate (Empresa)
     Empresa -> Frontend : acessa lista de resgates pendentes\ne localiza o código do aluno
     activate Frontend
     Frontend -> ResgateController : PATCH /resgates/{id}\n{status: "APROVADO"}
+    activate ResgateController
     ResgateController -> ResgateService : atualizarStatusResgate(id, APROVADO)
     ResgateService -> PostgreSQL : findById(id) → ResgateEntity {status: PENDENTE}
     ResgateService -> ResgateService : verificar: resgate.status == PENDENTE
@@ -336,6 +337,7 @@ group UC18 — Confirmar Resgate (Empresa)
     alt Resgate não encontrado
         PostgreSQL --> ResgateService : NoSuchElementException
         ResgateController --> Frontend : 404 "Resgate não encontrado."
+        deactivate ResgateController
         deactivate Frontend
     end
 end
@@ -344,6 +346,7 @@ group UC19 — Reembolsar Aluno (Empresa rejeita resgate)
     Empresa -> Frontend : seleciona resgate pendente\ne clica "Rejeitar"
     activate Frontend
     Frontend -> ResgateController : PATCH /resgates/{id}\n{status: "REJEITADO"}
+    activate ResgateController
     ResgateController -> ResgateService : atualizarStatusResgate(id, REJEITADO)
     ResgateService -> PostgreSQL : findById(id) → ResgateEntity {aluno, vantagem, custo}
     ResgateService -> ResgateService : resgate.setStatus(REJEITADO)
@@ -365,6 +368,7 @@ group UC19 — Reembolsar Aluno (Empresa rejeita resgate)
 
     ResgateService --> ResgateController : ResgateResponseDTO {status: REJEITADO}
     ResgateController --> Frontend : 200 OK + ResgateResponseDTO
+    deactivate ResgateController
     Frontend --> Empresa : resgate marcado como Rejeitado
     deactivate Frontend
 end
