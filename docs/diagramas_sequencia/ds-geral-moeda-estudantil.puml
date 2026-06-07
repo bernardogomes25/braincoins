@@ -50,9 +50,12 @@ group UC02 — Criar Conta (Aluno)
     activate AlunoService
     AlunoService -> AlunoService : validarCPF(cpf)
     AlunoService -> PostgreSQL : existePorEmail(email) → false
+    activate PostgreSQL
     AlunoService -> PostgreSQL : existePorCPF(cpf) → false
+    deactivate PostgreSQL
     AlunoService -> AlunoService : BCrypt.encode(senha)
     AlunoService -> PostgreSQL : save(AlunoEntity {saldo=0})
+    activate PostgreSQL
     PostgreSQL --> AlunoService : AlunoEntity {id}
     AlunoService --> AlunoController : AlunoResponseDTO
     AlunoController --> Frontend : 201 Created
@@ -60,6 +63,7 @@ group UC02 — Criar Conta (Aluno)
 
     alt Email ou CPF já cadastrado
         PostgreSQL --> AlunoService : DataIntegrityViolationException
+        deactivate PostgreSQL
         AlunoService --> AlunoController : 409 Conflict
         deactivate AlunoService
         AlunoController --> Frontend : 409 "Email/CPF já cadastrado."
@@ -79,9 +83,12 @@ group UC03 — Criar Conta (Empresa)
     activate EmpresaService
     EmpresaService -> EmpresaService : validarCNPJ(cnpj)
     EmpresaService -> PostgreSQL : existePorEmail(email) → false
+    activate PostgreSQL
     EmpresaService -> PostgreSQL : existePorCNPJ(cnpj) → false
+    deactivate PostgreSQL
     EmpresaService -> EmpresaService : BCrypt.encode(senha)
     EmpresaService -> PostgreSQL : save(EmpresaEntity)
+    activate PostgreSQL
     PostgreSQL --> EmpresaService : EmpresaEntity {id}
     EmpresaService --> EmpresaController : EmpresaResponseDTO
     EmpresaController --> Frontend : 201 Created
@@ -89,6 +96,7 @@ group UC03 — Criar Conta (Empresa)
 
     alt Email ou CNPJ já cadastrado
         PostgreSQL --> EmpresaService : DataIntegrityViolationException
+        deactivate PostgreSQL
         deactivate EmpresaService
         EmpresaController --> Frontend : 409 "Email/CNPJ já cadastrado."
         deactivate EmpresaController
@@ -113,9 +121,12 @@ group UC04 — Pré-cadastrar Instituição via CSV
         activate ProfessorService
         ProfessorService -> ProfessorService : validarCPF(cpf)
         ProfessorService -> PostgreSQL : existePorEmail(email) → false
+        activate PostgreSQL
         ProfessorService -> ProfessorService : BCrypt.encode(senhaTemporaria)
         ProfessorService -> PostgreSQL : save(ProfessorEntity {saldo=0, instituicaoId})
+        deactivate PostgreSQL
         PostgreSQL --> ProfessorService : ProfessorEntity {id}
+        activate PostgreSQL
         ProfessorService --> InstituicaoService : ProfessorResponseDTO
         InstituicaoService -> EmailService : enviarEmailCredenciais\n(email, senhaTemporaria) [async]
         activate EmailService
@@ -128,6 +139,7 @@ group UC04 — Pré-cadastrar Instituição via CSV
 
         alt Linha com dados inválidos (CPF/email duplicado)
             PostgreSQL --> ProfessorService : DataIntegrityViolationException
+            deactivate PostgreSQL
             deactivate ProfessorService
             InstituicaoService -> InstituicaoService : registra erro no relatório\ne continua para próxima linha
         end
@@ -147,7 +159,9 @@ group UC01 — Cadastrar Login e Senha (Autenticação)
     Frontend -> AuthController : POST /login/{role}
     AuthController -> AuthService : autenticar(email, senha, role)
     AuthService -> PostgreSQL : buscarUsuarioPorEmail(email, role)
+    activate PostgreSQL
     PostgreSQL --> AuthService : UsuarioEntity
+    deactivate PostgreSQL
 
     alt Usuário não encontrado
         AuthService --> AuthController : NoSuchElementException
@@ -177,12 +191,16 @@ group UC06 — Receber Moedas Semestrais (Professor)
     activate ProfessorService
     note right : executa automaticamente\na cada semestre via @Scheduled
     ProfessorService -> PostgreSQL : findAll(ProfessorEntity)
+    activate PostgreSQL
     PostgreSQL --> ProfessorService : List<ProfessorEntity>
+    deactivate PostgreSQL
 
     loop Para cada professor
         ProfessorService -> ProfessorService : professor.setSaldo(1000)
         ProfessorService -> PostgreSQL : save(professor)
+        activate PostgreSQL
         PostgreSQL --> ProfessorService : ProfessorEntity atualizado
+        deactivate PostgreSQL
     end
 
     ProfessorService --> SemestreScheduler : totalProfessoresAtualizados
@@ -199,6 +217,7 @@ group UC07 — Distribuir Moedas (Professor → Aluno)
     TransacaoCtrl -> TransacaoService : criarTransacao(TransacaoRequestDTO)
     activate TransacaoService
     TransacaoService -> PostgreSQL : findById(professorId) → ProfessorEntity {saldo}
+    activate PostgreSQL
 
     alt Saldo insuficiente [UC08]
         TransacaoService --> TransacaoCtrl : SaldoInsuficienteException
@@ -206,12 +225,17 @@ group UC07 — Distribuir Moedas (Professor → Aluno)
         Frontend --> Professor : exibe mensagem de erro
     else Saldo suficiente
         TransacaoService -> PostgreSQL : findById(alunoId) → AlunoEntity
+        deactivate PostgreSQL
         TransacaoService -> TransacaoService : professor.setSaldo(saldo - quantidade)
         TransacaoService -> PostgreSQL : save(professor)
+        activate PostgreSQL
         TransacaoService -> TransacaoService : aluno.setSaldo(saldo + quantidade)
         TransacaoService -> PostgreSQL : save(aluno)
+        deactivate PostgreSQL
         TransacaoService -> PostgreSQL : save(TransacaoEntity\n{professor, aluno, quantidade, descricao, data})
+        activate PostgreSQL
         PostgreSQL --> TransacaoService : TransacaoEntity {id}
+        deactivate PostgreSQL
 
         ' UC11 — Notificar Aluno por E-mail
         TransacaoService -> EmailService : enviarEmailRecebimento(\naluno.email, professor.nome,\nquantidade, descricao) [async — UC11]
@@ -238,6 +262,7 @@ end
 
 group UC10 — Receber Moedas / Consultar Saldo (Aluno)
     note over Aluno, PostgreSQL : Saldo incrementado em UC07.\n Este UC descreve a consulta do saldo atualizado.
+    activate PostgreSQL
     Aluno -> Frontend : abre dashboard ou aba de saldo
     activate Frontend
     Frontend -> AlunoController : GET /alunos/{id}
@@ -245,7 +270,9 @@ group UC10 — Receber Moedas / Consultar Saldo (Aluno)
     AlunoController -> AlunoService : buscarAluno(id)
     activate AlunoService
     AlunoService -> PostgreSQL : findById(id)
+    activate PostgreSQL
     PostgreSQL --> AlunoService : AlunoEntity {saldo, nome, …}
+    deactivate PostgreSQL
     AlunoService --> AlunoController : AlunoResponseDTO
     deactivate AlunoService
     AlunoController --> Frontend : 200 OK + {saldo, nome, …}
@@ -262,6 +289,7 @@ group UC09 — Consultar Extrato (Aluno / Professor)
     TransacaoCtrl -> TransacaoService : listarTransacoes(filtro)
     activate TransacaoService
     TransacaoService -> PostgreSQL : findByAlunoId(id)\nou findByProfessorId(id)
+    activate PostgreSQL
     PostgreSQL --> TransacaoService : List<TransacaoEntity>
     TransacaoService --> TransacaoCtrl : List<TransacaoResponseDTO>
     TransacaoCtrl --> Frontend : 200 OK + [lista de transações]
@@ -269,6 +297,7 @@ group UC09 — Consultar Extrato (Aluno / Professor)
 
     alt Nenhuma transação encontrada
         PostgreSQL --> TransacaoService : []
+        deactivate PostgreSQL
         deactivate TransacaoService
         TransacaoCtrl --> Frontend : 200 OK + []
         deactivate TransacaoCtrl
@@ -289,9 +318,13 @@ group UC17 — Cadastrar Vantagem (Empresa)
     activate VantagemService
     VantagemService -> VantagemService : validar: custo > 0, estoque >= 0
     VantagemService -> PostgreSQL : findById(empresaId) → EmpresaEntity
+    activate PostgreSQL
     PostgreSQL --> VantagemService : empresa
+    deactivate PostgreSQL
     VantagemService -> PostgreSQL : save(VantagemEntity\n{empresa, nome, descricao, custo, estoque, ativo=true})
+    activate PostgreSQL
     PostgreSQL --> VantagemService : VantagemEntity {id}
+    deactivate PostgreSQL
     VantagemService --> VantagemController : VantagemResponseDTO
     deactivate VantagemService
     VantagemController --> Frontend : 201 Created + VantagemResponseDTO
@@ -308,7 +341,9 @@ group UC12 — Resgatar Vantagem (Aluno)
     VantagemController -> ResgateService : resgatarVantagem(alunoId, vantagemId)
     activate ResgateService
     ResgateService -> PostgreSQL : findById(alunoId) → AlunoEntity {saldo}
+    activate PostgreSQL
     ResgateService -> PostgreSQL : findById(vantagemId) → VantagemEntity {custo, estoque, ativo}
+    deactivate PostgreSQL
 
     alt Vantagem inativa ou estoque esgotado [UC13 parcial]
         ResgateService --> VantagemController : EstoqueEsgotadoException
@@ -321,11 +356,15 @@ group UC12 — Resgatar Vantagem (Aluno)
     else Operação válida
         ResgateService -> ResgateService : aluno.setSaldo(saldo - custo)
         ResgateService -> PostgreSQL : save(aluno)
+        activate PostgreSQL
         ResgateService -> ResgateService : vantagem.setEstoque(estoque - 1)
         ResgateService -> PostgreSQL : save(vantagem)
+        deactivate PostgreSQL
         ResgateService -> ResgateService : gerarCodigoCupom() → UUID único
         ResgateService -> PostgreSQL : save(ResgateEntity\n{aluno, vantagem, cupom, status=PENDENTE, dataSolicitacao})
+        activate PostgreSQL
         PostgreSQL --> ResgateService : ResgateEntity {id, codigoCupom}
+        deactivate PostgreSQL
 
         ' UC14 — Enviar E-mail de Confirmação de Resgate
         ResgateService -> EmailService : enviarEmailCupom(\nempresa.email, aluno.nome,\nvantagem.nome, codigoCupom) [async — UC14]
@@ -358,6 +397,7 @@ group UC18 — Confirmar Resgate (Empresa)
     ResgateController -> ResgateService : atualizarStatusResgate(id, APROVADO)
     activate ResgateService
     ResgateService -> PostgreSQL : findById(id) → ResgateEntity {status: PENDENTE}
+    activate PostgreSQL
     ResgateService -> ResgateService : verificar: resgate.status == PENDENTE
     ResgateService -> ResgateService : resgate.setStatus(APROVADO)
     ResgateService -> ResgateService : resgate.setDataAprovacao(now())
@@ -375,6 +415,7 @@ group UC18 — Confirmar Resgate (Empresa)
 
     alt Resgate não encontrado
         PostgreSQL --> ResgateService : NoSuchElementException
+        deactivate PostgreSQL
         deactivate ResgateService
         ResgateController --> Frontend : 404 "Resgate não encontrado."
         deactivate ResgateController
@@ -390,12 +431,16 @@ group UC19 — Reembolsar Aluno (Empresa rejeita resgate)
     ResgateController -> ResgateService : atualizarStatusResgate(id, REJEITADO)
     activate ResgateService
     ResgateService -> PostgreSQL : findById(id) → ResgateEntity {aluno, vantagem, custo}
+    activate PostgreSQL
     ResgateService -> ResgateService : resgate.setStatus(REJEITADO)
     ResgateService -> PostgreSQL : save(resgate)
+    deactivate PostgreSQL
     ResgateService -> ResgateService : aluno.setSaldo(saldo + vantagem.custo)
     ResgateService -> PostgreSQL : save(aluno)
+    activate PostgreSQL
     ResgateService -> ResgateService : vantagem.setEstoque(estoque + 1)
     ResgateService -> PostgreSQL : save(vantagem)
+    deactivate PostgreSQL
 
     ' UC16 — Comunicar Aluno via E-mail
     ResgateService -> EmailService : enviarEmailReembolso(\naluno.email, vantagem.nome, custo)\n[async — UC16]
@@ -428,18 +473,26 @@ group UC15 — Cancelar Resgate Expirado (@Scheduled)
     activate ResgateService
     note right : job agendado — verifica\nperiodicamente resgates expirados
     ResgateService -> PostgreSQL : findAllByStatusAndDataSolicitacaoBefore(\nPENDENTE, dataLimite)
+    activate PostgreSQL
     PostgreSQL --> ResgateService : List<ResgateEntity> resgatesExpirados
+    deactivate PostgreSQL
 
     loop Para cada resgate expirado
         ResgateService -> ResgateService : resgate.setStatus(REJEITADO)
         ResgateService -> PostgreSQL : save(resgate)
+        activate PostgreSQL
         PostgreSQL --> ResgateService : ok
+        deactivate PostgreSQL
         ResgateService -> ResgateService : aluno.setSaldo(saldo + vantagem.custo)
         ResgateService -> PostgreSQL : save(aluno)
+        activate PostgreSQL
         PostgreSQL --> ResgateService : ok
+        deactivate PostgreSQL
         ResgateService -> ResgateService : vantagem.setEstoque(estoque + 1)
         ResgateService -> PostgreSQL : save(vantagem)
+        activate PostgreSQL
         PostgreSQL --> ResgateService : ok
+        deactivate PostgreSQL
 
         ' UC16 — Comunicar Aluno via E-mail (reembolso por expiração)
         ResgateService -> EmailService : enviarEmailReembolso(\naluno.email, vantagem.nome, custo)\n[async — UC16]
