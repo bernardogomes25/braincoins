@@ -121,8 +121,10 @@ group UC04 — Pré-cadastrar Instituição via CSV
         activate EmailService
         EmailService -> EmailService : montarTemplate(email, credenciais)
         EmailService -> MailtrapSMTP : SMTP.send()
+        activate MailtrapSMTP
         deactivate EmailService
         MailtrapSMTP --> Instituicao : e-mail com login e senha temporária
+        deactivate MailtrapSMTP
 
         alt Linha com dados inválidos (CPF/email duplicado)
             PostgreSQL --> ProfessorService : DataIntegrityViolationException
@@ -216,7 +218,9 @@ group UC07 — Distribuir Moedas (Professor → Aluno)
         activate EmailService
         EmailService -> EmailService : montarTemplate()
         EmailService -> MailtrapSMTP : SMTP.send()
+        activate MailtrapSMTP
         MailtrapSMTP --> Aluno : e-mail de notificação de recebimento
+        deactivate MailtrapSMTP
 
         alt Mailtrap indisponível
             EmailService -> EmailService : log.error() [falha silenciosa]
@@ -328,7 +332,9 @@ group UC12 — Resgatar Vantagem (Aluno)
         activate EmailService
         EmailService -> EmailService : montarTemplate(\n"Novo resgate de {aluno}\npara {vantagem}. Código: {cupom}")
         EmailService -> MailtrapSMTP : send(MimeMessage)
+        activate MailtrapSMTP
         MailtrapSMTP --> Empresa : e-mail com código de confirmação
+        deactivate MailtrapSMTP
 
         alt Mailtrap indisponível
             EmailService -> EmailService : log.error()\n[falha silenciosa — resgate já foi criado]
@@ -360,6 +366,8 @@ group UC18 — Confirmar Resgate (Empresa)
     ResgateService -> EmailService : enviarEmailAprovacao(\naluno.email, vantagem.nome) [async]
     activate EmailService
     EmailService -> MailtrapSMTP : SMTP.send()
+    activate MailtrapSMTP
+    deactivate MailtrapSMTP
     deactivate EmailService
     ResgateService --> ResgateController : ResgateResponseDTO {status: APROVADO}
     ResgateController --> Frontend : 200 OK + ResgateResponseDTO
@@ -394,7 +402,9 @@ group UC19 — Reembolsar Aluno (Empresa rejeita resgate)
     activate EmailService
     EmailService -> EmailService : montarTemplate(\n"Seu resgate de {vantagem} foi cancelado.\n{N} moedas foram devolvidas ao seu saldo.")
     EmailService -> MailtrapSMTP : send(MimeMessage)
+    activate MailtrapSMTP
     MailtrapSMTP --> Aluno : e-mail de notificação de reembolso
+    deactivate MailtrapSMTP
 
     alt Mailtrap indisponível
         EmailService -> EmailService : log.error() [falha silenciosa]
@@ -435,8 +445,10 @@ group UC15 — Cancelar Resgate Expirado (@Scheduled)
         ResgateService -> EmailService : enviarEmailReembolso(\naluno.email, vantagem.nome, custo)\n[async — UC16]
         activate EmailService
         EmailService -> MailtrapSMTP : send(MimeMessage)
+        activate MailtrapSMTP
         deactivate EmailService
         MailtrapSMTP --> Aluno : e-mail de notificação de reembolso
+        deactivate MailtrapSMTP
     end
 
     ResgateService --> ResgateScheduler : totalCancelados
