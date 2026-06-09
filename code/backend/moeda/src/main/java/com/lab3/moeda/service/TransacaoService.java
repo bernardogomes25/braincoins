@@ -1,6 +1,7 @@
 package com.lab3.moeda.service;
 
 import com.lab3.moeda.dto.request.TransacaoRequestDTO;
+import com.lab3.moeda.util.EmailTemplates;
 import com.lab3.moeda.dto.response.TransacaoResponseDTO;
 import com.lab3.moeda.exception.SaldoInsuficienteException;
 import com.lab3.moeda.model.AlunoEntity;
@@ -126,21 +127,7 @@ public class TransacaoService {
 
     private void enviarEmailNotificacao(ProfessorEntity professor, AlunoEntity aluno, short valor, String motivo) {
         String assuntoAluno = "🪙 Você recebeu moedas de mérito!";
-        String corpoAluno = String.format(
-                """
-                Olá %s,
-
-                Você recebeu %d moedas de mérito de %s pela seguinte razão:
-
-                "%s"
-
-                Seu novo saldo: %d moedas
-
-                Continue assim! 🚀
-
-                ---
-                BrainCoins - Sistema de Moeda Estudantil
-                """,
+        String corpoAluno = EmailTemplates.moedasRecebidas(
                 aluno.getNome(),
                 valor,
                 professor.getNome(),
@@ -150,22 +137,7 @@ public class TransacaoService {
         emailService.enviarEmailAssincrono(aluno.getEmail(), assuntoAluno, corpoAluno);
 
         String assuntoProfessor = "✅ Confirmação: moedas enviadas para " + aluno.getNome();
-        String corpoProfessor = String.format(
-                """
-                Olá Prof. %s,
-
-                Sua transação foi registrada com sucesso.
-
-                📋 Detalhes da transação:
-                👤 Aluno: %s
-                🪙 Moedas enviadas: %d
-                📝 Justificativa: "%s"
-
-                💰 Seu saldo atual: %d moedas
-
-                ---
-                BrainCoins - Sistema de Moeda Estudantil
-                """,
+        String corpoProfessor = EmailTemplates.confirmacaoEnvio(
                 professor.getNome(),
                 aluno.getNome(),
                 valor,

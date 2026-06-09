@@ -49,7 +49,7 @@ public class EmailServiceImpl implements EmailService {
         helper.setFrom(emailRemetente);
         helper.setTo(para);
         helper.setSubject(assunto);
-        helper.setText(corpo, false);
+        helper.setText(corpo, true);
         mailSender.send(message);
         log.info("[EMAIL] Enviado para: {} | Assunto: {}", para, assunto);
     }

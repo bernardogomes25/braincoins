@@ -1,6 +1,7 @@
 package com.lab3.moeda.service;
 
 import com.lab3.moeda.config.RabbitConfig;
+import com.lab3.moeda.util.EmailTemplates;
 import com.lab3.moeda.dto.TrocaAceitaEventDTO;
 import com.lab3.moeda.model.ResgateEntity;
 import com.lab3.moeda.model.StatusTroca;
@@ -68,17 +69,7 @@ public class TrocaConsumerService {
         try {
             String assunto = "✅ Troca aceita — BrainCoins";
 
-            String corpoPara = """
-                    Olá %s,
-
-                    Sua solicitação de troca foi aceita por %s!
-
-                    Você recebeu: %s (%s)
-                    Você enviou: %s (%s)
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """.formatted(
+            String corpoPara = EmailTemplates.trocaAceitaSolicitante(
                     troca.getAlunoSolicitante().getNome(),
                     troca.getAlunoDestinatario().getNome(),
                     troca.getResgateDesejado().getVantagem().getNome(),
@@ -88,17 +79,7 @@ public class TrocaConsumerService {
             );
             emailService.enviarEmailAssincrono(troca.getAlunoSolicitante().getEmail(), assunto, corpoPara);
 
-            String corpoAceitante = """
-                    Olá %s,
-
-                    Você aceitou a troca com %s.
-
-                    Você recebeu: %s (%s)
-                    Você enviou: %s (%s)
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """.formatted(
+            String corpoAceitante = EmailTemplates.trocaAceitaDestinatario(
                     troca.getAlunoDestinatario().getNome(),
                     troca.getAlunoSolicitante().getNome(),
                     troca.getResgateOferecido().getVantagem().getNome(),

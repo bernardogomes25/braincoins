@@ -12,6 +12,7 @@ import com.lab3.moeda.repository.AlunoRepository;
 import com.lab3.moeda.repository.EmpresaRepository;
 import com.lab3.moeda.repository.ResgateRepository;
 import com.lab3.moeda.repository.VantagemRepository;
+import com.lab3.moeda.util.EmailTemplates;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,26 +126,12 @@ public class ResgateService {
     private void enviarEmailAluno(AlunoEntity aluno, VantagemEntity vantagem, String codigo, LocalDateTime dataResgate) {
         try {
             String assunto = "🎁 Seu cupom BrainCoins: " + vantagem.getNome();
-            String corpo = String.format("""
-                    Olá %s,
-
-                    Seu resgate foi confirmado! 🎉
-
-                    Vantagem: %s
-                    Empresa: %s
-                    Cupom: %s
-                    Válido até: %s
-
-                    Apresente este cupom ao retirar seu benefício.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.cupomAluno(
                     aluno.getNome(),
                     vantagem.getNome(),
                     vantagem.getEmpresa().getNome(),
                     codigo,
-                    dataResgate.plusDays(DIAS_VALIDADE).toLocalDate()
+                    dataResgate.plusDays(DIAS_VALIDADE).toLocalDate().toString()
             );
             emailService.enviarEmailAssincrono(aluno.getEmail(), assunto, corpo);
         } catch (Exception e) {
@@ -155,20 +142,7 @@ public class ResgateService {
     private void enviarEmailEmpresa(VantagemEntity vantagem, AlunoEntity aluno, String codigo) {
         try {
             String assunto = "📦 Novo resgate: " + vantagem.getNome();
-            String corpo = String.format("""
-                    Olá %s,
-
-                    Uma vantagem foi resgatada por um aluno.
-
-                    Vantagem: %s
-                    Aluno: %s
-                    Código de validação: %s
-
-                    Aguarde a retirada do benefício em até 15 dias.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.novoResgateEmpresa(
                     vantagem.getEmpresa().getNome(),
                     vantagem.getNome(),
                     aluno.getNome(),
@@ -183,16 +157,7 @@ public class ResgateService {
     private void enviarEmailCancelamento(ResgateEntity resgate) {
         try {
             String assunto = "⚠️ Resgate expirado — moedas reembolsadas";
-            String corpo = String.format("""
-                    Olá %s,
-
-                    Seu resgate de "%s" expirou porque não foi retirado em 15 dias.
-
-                    %d moedas foram devolvidas ao seu saldo.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.resgateExpirado(
                     resgate.getAluno().getNome(),
                     resgate.getVantagem().getNome(),
                     resgate.getValorMoedas()

@@ -1,6 +1,7 @@
 package com.lab3.moeda.service;
 
 import com.lab3.moeda.config.RabbitConfig;
+import com.lab3.moeda.util.EmailTemplates;
 import com.lab3.moeda.dto.TrocaAceitaEventDTO;
 import com.lab3.moeda.dto.request.TrocaRequestDTO;
 import com.lab3.moeda.dto.response.AlunoDisponivelResponseDTO;
@@ -194,19 +195,7 @@ public class TrocaService {
     private void enviarEmailSolicitacao(AlunoEntity destinatario, AlunoEntity solicitante, TrocaEntity troca) {
         try {
             String assunto = "🔄 Nova solicitação de troca BrainCoins";
-            String corpo = String.format("""
-                    Olá %s,
-
-                    %s quer trocar resgates com você!
-
-                    Ele oferece: %s (%s)
-                    Ele quer: %s (%s)
-
-                    Acesse o sistema para aceitar ou recusar. A solicitação expira em %d dias.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.novaSolicitacaoTroca(
                     destinatario.getNome(),
                     solicitante.getNome(),
                     troca.getResgateOferecido().getVantagem().getNome(),
@@ -224,17 +213,7 @@ public class TrocaService {
     private void enviarEmailAceite(TrocaEntity troca) {
         try {
             String assunto = "✅ Troca aceita — BrainCoins";
-            String corpoPara = """
-                    Olá %s,
-
-                    Sua solicitação de troca foi aceita por %s!
-
-                    Você recebeu: %s (%s)
-                    Você enviou: %s (%s)
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """.formatted(
+            String corpoPara = EmailTemplates.trocaAceitaSolicitante(
                     troca.getAlunoSolicitante().getNome(),
                     troca.getAlunoDestinatario().getNome(),
                     troca.getResgateDesejado().getVantagem().getNome(),
@@ -244,17 +223,7 @@ public class TrocaService {
             );
             emailService.enviarEmailAssincrono(troca.getAlunoSolicitante().getEmail(), assunto, corpoPara);
 
-            String corpoAceitante = """
-                    Olá %s,
-
-                    Você aceitou a troca com %s.
-
-                    Você recebeu: %s (%s)
-                    Você enviou: %s (%s)
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """.formatted(
+            String corpoAceitante = EmailTemplates.trocaAceitaDestinatario(
                     troca.getAlunoDestinatario().getNome(),
                     troca.getAlunoSolicitante().getNome(),
                     troca.getResgateOferecido().getVantagem().getNome(),
@@ -271,14 +240,7 @@ public class TrocaService {
     private void enviarEmailRecusa(TrocaEntity troca) {
         try {
             String assunto = "❌ Troca recusada — BrainCoins";
-            String corpo = String.format("""
-                    Olá %s,
-
-                    %s recusou sua solicitação de troca.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.trocaRecusada(
                     troca.getAlunoSolicitante().getNome(),
                     troca.getAlunoDestinatario().getNome()
             );
@@ -291,14 +253,7 @@ public class TrocaService {
     private void enviarEmailExpiracao(TrocaEntity troca) {
         try {
             String assunto = "⚠️ Solicitação de troca expirada — BrainCoins";
-            String corpo = String.format("""
-                    Olá %s,
-
-                    Sua solicitação de troca com %s expirou após %d dias sem resposta.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.trocaExpirada(
                     troca.getAlunoSolicitante().getNome(),
                     troca.getAlunoDestinatario().getNome(),
                     DIAS_VALIDADE
@@ -312,19 +267,7 @@ public class TrocaService {
     private void enviarEmailCancelamentoTroca(TrocaEntity troca) {
         try {
             String assunto = "🚫 Solicitação de troca cancelada — BrainCoins";
-            String corpo = String.format("""
-                    Olá %s,
-
-                    %s cancelou a solicitação de troca enviada para você.
-
-                    Ele oferecia: %s (%s)
-                    Ele queria: %s (%s)
-
-                    Nenhuma ação é necessária da sua parte.
-
-                    ---
-                    BrainCoins - Sistema de Moeda Estudantil
-                    """,
+            String corpo = EmailTemplates.trocaCancelada(
                     troca.getAlunoDestinatario().getNome(),
                     troca.getAlunoSolicitante().getNome(),
                     troca.getResgateOferecido().getVantagem().getNome(),
