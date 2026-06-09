@@ -279,7 +279,7 @@ deactivate PS
 IS -> ES: enviarEmailBoasVindas(\n  email, nome, senhaTemporaria\n) [async]
 activate ES
 ES -> ES: montarTemplate(email, credenciais)
-ES -> ES: SMTP.send() via Mailtrap
+ES -> ES: SMTP.send() via JavaMailSender
 ES --> I: E-mail entregue ao professor
 deactivate ES
 @enduml
@@ -537,7 +537,7 @@ title UC11 — Notificar Aluno por E-mail
 
 participant "TransacaoService" as TS
 participant "EmailService\n(@Async)" as ES
-participant "Mailtrap SMTP" as SMTP
+participant "SMTP" as SMTP
 actor "Aluno" as A
 
 note over TS: Disparado ao final de UC07\napós persistir a transação com sucesso
@@ -554,7 +554,7 @@ deactivate SMTP
 
 deactivate ES
 
-alt Mailtrap indisponível ou sem credenciais
+alt SMTP indisponível ou sem credenciais
     SMTP --> ES: MailException
     ES -> ES: log.error("Falha ao enviar email...")\n[falha silenciosa — não interrompe o fluxo]
 end
@@ -690,7 +690,7 @@ title UC14 — Enviar E-mail de Confirmação de Resgate
 
 participant "ResgateService" as RS
 participant "EmailService\n(@Async)" as ES
-participant "Mailtrap SMTP" as SMTP
+participant "SMTP" as SMTP
 actor "Empresa" as E
 
 note over RS: Disparado ao final de UC12\napós criar o ResgateEntity com sucesso
@@ -708,7 +708,7 @@ deactivate ES
 
 note over E: Empresa recebe o codigoCupom\npara validar presencialmente\nquando o aluno retirar a vantagem
 
-alt Mailtrap indisponível
+alt SMTP indisponível
     SMTP --> ES: MailException
     ES -> ES: log.error()\n[falha silenciosa — resgate já foi criado]
 end
@@ -781,7 +781,7 @@ title UC16 — Comunicar Aluno via E-mail (Reembolso / Cancelamento)
 
 participant "ResgateService" as RS
 participant "EmailService\n(@Async)" as ES
-participant "Mailtrap SMTP" as SMTP
+participant "SMTP" as SMTP
 actor "Aluno" as A
 
 note over RS: Disparado por UC15 (expirado)\nou UC19 (empresa rejeitou)
@@ -797,7 +797,7 @@ SMTP --> A: E-mail de notificação de reembolso
 deactivate SMTP
 deactivate ES
 
-alt Mailtrap indisponível
+alt SMTP indisponível
     SMTP --> ES: MailException
     ES -> ES: log.error()\n[falha silenciosa]
 end

@@ -224,7 +224,7 @@ As seguintes ferramentas, frameworks e bibliotecas foram utilizados na construç
 * **Banco de Dados:** PostgreSQL 17
 * **ORM / Query Builder:** Hibernate/JPA 7.3.2
 * **Autenticação:** Spring Security
-* **Email:** Spring Mail + Mailtrap (SMTP via `JavaMailSender`, envio assíncrono com `@Async`)
+* **Email:** Spring Mail + SMTP (via `JavaMailSender`, envio assíncrono com `@Async`)
 * **Recursos Assincronos:** Spring Async & Scheduling habilitado
 
 ### ⚙️ Infraestrutura & DevOps
@@ -469,11 +469,11 @@ Configure estas variáveis no arquivo `.env` na raiz do projeto ou como variáve
 | `DB_PASSWORD` | Senha do banco de dados. | `admin2513` |
 | `NEXTAUTH_SECRET` | Chave secreta para autenticação. | `secret_chave_aleatoria_123` |
 | `NEXTAUTH_URL` | URL base da aplicação para autenticação. | `http://localhost:3000` |
-| `MAIL_HOST` | Servidor SMTP (Mailtrap). | `live.smtp.mailtrap.io` |
+| `MAIL_HOST` | Servidor SMTP. | `smtp.gmail.com` |
 | `MAIL_PORT` | Porta SMTP. | `587` |
-| `MAIL_USERNAME` | Usuário SMTP (Mailtrap). | `api` |
-| `MAIL_PASSWORD` | Token/senha SMTP (Mailtrap). | `seu-token-mailtrap-aqui` |
-| `MAIL_FROM` | E-mail remetente (verificado no Mailtrap). | `noreply@braincoins.io` |
+| `MAIL_USERNAME` | Usuário SMTP (e-mail remetente). | `seu-email@gmail.com` |
+| `MAIL_PASSWORD` | Senha de app SMTP. | `sua-senha-de-app` |
+| `MAIL_FROM` | E-mail remetente. | `seu-email@gmail.com` |
 
 #### 2 Front-end (React, Vite)
 
@@ -502,14 +502,14 @@ DATABASE_URL="postgresql://postgres:admin2513@localhost:5432/braincoins?schema=p
 NEXTAUTH_SECRET="secret_chave_aleatoria_123"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Mailtrap — envio de e-mails (transações, resgates, trocas)
-MAIL_HOST=live.smtp.mailtrap.io
+# SMTP — envio de e-mails (transações, resgates, trocas)
+MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=api
-MAIL_PASSWORD=seu-token-mailtrap-aqui
-MAIL_FROM=noreply@braincoins.io
+MAIL_USERNAME=seu-email@gmail.com
+MAIL_PASSWORD=sua-senha-de-app
+MAIL_FROM=seu-email@gmail.com
 ```
-> 💡 **Sem Mailtrap configurado:** as operações funcionam normalmente, mas o envio de e-mail falha silenciosamente (erro registrado em log).
+> 💡 **Sem SMTP configurado:** as operações funcionam normalmente, mas o envio de e-mail falha silenciosamente (erro registrado em log).
 
 **Arquivo: `code/frontend/moeda-estudantil/.env.local`**
 ```bash

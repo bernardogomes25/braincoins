@@ -31,7 +31,7 @@ public class TrocaEntity {
     private LocalDateTime dataSolicitacao;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 15)
     private StatusTroca status = StatusTroca.PENDENTE;
 
     public TrocaEntity() {}

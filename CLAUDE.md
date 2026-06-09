@@ -25,11 +25,11 @@ Monorepo: **Java 21 + Spring Boot 4.0.6** (backend) + **React 19 + Vite** (front
 
 ## Stack Tecnológico
 
-**Backend**: Java 21, Spring Boot 4.0.6, JPA/Hibernate, Spring Security, Spring Mail (Mailtrap), PostgreSQL 17
+**Backend**: Java 21, Spring Boot 4.0.6, JPA/Hibernate, Spring Security, Spring Mail (Mailtrap), PostgreSQL 17, RabbitMQ 3
 **Frontend**: React 19, TypeScript, Vite 8, TailwindCSS 4, TanStack Router 1, Radix UI, Recharts
 **Design System**: **Amber Intelligence** (substituiu o tema glassmorphism púrpura) — tokens semânticos via `@theme inline` em `src/styles.css`
 **Tipografia**: Syne (display), Plus Jakarta Sans (sans), JetBrains Mono (mono)
-**Infraestrutura**: Docker, Docker Compose
+**Infraestrutura**: Docker, Docker Compose (PostgreSQL 17 + RabbitMQ 3-management)
 
 ---
 
@@ -55,12 +55,12 @@ braincoins/
 DATABASE_URL="postgresql://usuario:senha@localhost:5432/banco"
 NEXTAUTH_SECRET="chave-aleatoria"
 
-# Mailtrap (envio de e-mails — notificações de transação e resgate)
-MAIL_HOST=live.smtp.mailtrap.io
+# SMTP (envio de e-mails — notificações de transação e resgate)
+MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=api
-MAIL_PASSWORD=seu-token-mailtrap-aqui
-MAIL_FROM=email-remetente-verificado@dominio.com
+MAIL_USERNAME=seu-email@gmail.com
+MAIL_PASSWORD=sua-senha-de-app
+MAIL_FROM=seu-email@gmail.com
 ```
 
 Frontend (`.env.local`):
@@ -143,7 +143,7 @@ Documentação completa: `BrainCoins_API.postman_collection.json`
 | `TrocaEntity` | id, aluno_solicitante_id (FK), aluno_destinatario_id (FK), resgate_oferecido_id (FK), resgate_desejado_id (FK), dataSolicitacao, status | N:M AlunoEntity (via resgates trocados) |
 
 Status de resgate: `ATIVO → PENDENTE → {APROVADO, REJEITADO}`
-Status de troca: `PENDENTE → {ACEITA, RECUSADA, CANCELADA, EXPIRADA}` (expiração automática após 15 dias)
+Status de troca: `PENDENTE → PROCESSANDO → ACEITA` (via fila RabbitMQ) | `PENDENTE → {RECUSADA, CANCELADA, EXPIRADA}` (expiração automática após 15 dias)
 
 ---
 
@@ -225,7 +225,8 @@ cd code/backend/moeda
 - TanStack Router: type-safe, tipagem automática de rotas
 - Radix UI: headless, totalmente customizável com Tailwind
 - `@EnableAsync` e `@EnableScheduling`: Reset semestral + expiração de resgates (`ResgateScheduler`) + expiração de trocas pendentes (`TrocaScheduler`, cron diário à meia-noite, 15 dias)
-- **Envio de e-mails** via Spring Mail + Mailtrap: todas as notificações são `@Async` (não bloqueiam a request) e falham silenciosamente com log de erro quando o SMTP não está configurado. Eventos cobertos por serviço:
+- **RabbitMQ** (fila `fila.aceite.troca`, durable): aceitar troca é assíncrono — `TrocaService.aceitar()` seta status `PROCESSANDO` e publica `TrocaAceitaEventDTO` na fila; `TrocaConsumerService` (@RabbitListener) transfere `aluno_id` dos resgates e seta `ACEITA`. Serialização via `GsonMessageConverter` (header `__TypeId__`). Config em `RabbitConfig.java`.
+- **Envio de e-mails** via Spring Mail + SMTP: todas as notificações são `@Async` (não bloqueiam a request) e falham silenciosamente com log de erro quando o SMTP não está configurado. Eventos cobertos por serviço:
   - `TransacaoService`: aluno recebe moedas; professor confirma envio
   - `ResgateService`: aluno recebe cupom; empresa é notificada de novo resgate; aluno é notificado quando resgate expira (reembolso automático)
   - `TrocaService`: destinatário recebe nova solicitação; solicitante recebe aceite; aceitante confirma aceite; solicitante recebe recusa; destinatário recebe cancelamento (pelo solicitante); solicitante recebe notificação de expiração por prazo
@@ -242,8 +243,10 @@ cd code/backend/moeda
 - Sem CI/CD — testes e deploy manuais
 - `App.jsx` vazio (roteamento em `main.jsx`)
 - `prisma.config.ts` (resquício, pode remover)
-- Envio de e-mail depende de Mailtrap configurado no `.env` — sem credenciais válidas, as ações continuam funcionando mas o e-mail falha silenciosamente (log do `EmailServiceImpl`)
+- Envio de e-mail depende de SMTP configurado no `.env` — sem credenciais válidas, as ações continuam funcionando mas o e-mail falha silenciosamente (log do `EmailServiceImpl`)
 - Suíte de testes em `src/test/java` está desatualizada (DTOs mudaram) e não compila — use `./mvnw spring-boot:run -Dmaven.test.skip=true` para subir o backend
+- Se `target/` ou `~/.m2/` estiverem com ownership de `root` (ocorre ao buildar com sudo), o Maven não consegue escrever — use `sudo chown -R $USER:$USER target/ ~/.m2/` para corrigir; alternativamente execute o JAR diretamente: `java -jar target/moeda-0.0.1-SNAPSHOT.jar`
+- RabbitMQ precisa estar rodando antes do backend — `docker compose up -d` sobe PostgreSQL + RabbitMQ juntos
 
 ---
 
