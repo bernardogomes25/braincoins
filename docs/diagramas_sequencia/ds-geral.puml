@@ -29,10 +29,13 @@ participant ProfessorService   as "ProfessorService"
 participant TransacaoService   as "TransacaoService"
 participant VantagemService    as "VantagemService"
 participant ResgateService     as "ResgateService"
+participant ResgateConsumerService as "ResgateConsumerService"
+participant TrocaConsumerService   as "TrocaConsumerService\n(@RabbitListener)"
 participant EmailService        as "EmailService\n(@Async)"
 
 participant SemestreScheduler  as "SemestreScheduler\n(@Scheduled)"
 participant ResgateScheduler   as "ResgateScheduler\n(@Scheduled)"
+participant RabbitMQ           as "RabbitMQ"
 participant MailtrapSMTP       as "Mailtrap SMTP"
 
 database    PostgreSQL         as "PostgreSQL"
@@ -361,13 +364,36 @@ group UC12 — Resgatar Vantagem (Aluno)
         ResgateService -> PostgreSQL : save(vantagem)
         deactivate PostgreSQL
         ResgateService -> ResgateService : gerarCodigoCupom() → UUID único
-        ResgateService -> PostgreSQL : save(ResgateEntity\n{aluno, vantagem, cupom, status=PENDENTE, dataSolicitacao})
+        ResgateService -> PostgreSQL : save(ResgateEntity\n{aluno, vantagem, cupom, status=PROCESSANDO, dataSolicitacao})
         activate PostgreSQL
         PostgreSQL --> ResgateService : ResgateEntity {id, codigoCupom}
         deactivate PostgreSQL
 
+        ResgateService -> RabbitMQ : convertAndSend(\nFILA_RESGATE_VANTAGEM,\nResgateEventDTO {resgateId})
+        activate RabbitMQ
+
+        ResgateService --> VantagemController : ResgateResponseDTO {status=PROCESSANDO}
+        deactivate ResgateService
+        VantagemController --> Frontend : 202 Accepted + {codigoCupom}
+        deactivate VantagemController
+        Frontend --> Aluno : exibe código do cupom e instruções
+        deactivate Frontend
+
+        RabbitMQ -> ResgateConsumerService : @RabbitListener\nprocessarResgate(ResgateEventDTO)
+        activate ResgateConsumerService
+        ResgateConsumerService -> PostgreSQL : findById(resgateId) → ResgateEntity
+        activate PostgreSQL
+        PostgreSQL --> ResgateConsumerService : ResgateEntity {status=PROCESSANDO}
+        deactivate PostgreSQL
+        ResgateConsumerService -> ResgateConsumerService : resgate.setStatus(ATIVO)
+        ResgateConsumerService -> PostgreSQL : save(resgate)
+        activate PostgreSQL
+        PostgreSQL --> ResgateConsumerService : ok
+        deactivate PostgreSQL
+        deactivate RabbitMQ
+
         ' UC14 — Enviar E-mail de Confirmação de Resgate
-        ResgateService -> EmailService : enviarEmailCupom(\nempresa.email, aluno.nome,\nvantagem.nome, codigoCupom) [async — UC14]
+        ResgateConsumerService -> EmailService : enviarEmailCupom(\nempresa.email, aluno.nome,\nvantagem.nome, codigoCupom) [async — UC14]
         activate EmailService
         EmailService -> EmailService : montarTemplate(\n"Novo resgate de {aluno}\npara {vantagem}. Código: {cupom}")
         EmailService -> MailtrapSMTP : send(MimeMessage)
@@ -380,12 +406,15 @@ group UC12 — Resgatar Vantagem (Aluno)
             deactivate EmailService
         end
 
-        ResgateService --> VantagemController : ResgateResponseDTO {codigoCupom}
-        deactivate ResgateService
-        VantagemController --> Frontend : 201 Created + {codigoCupom}
-        deactivate VantagemController
-        Frontend --> Aluno : exibe código do cupom e instruções
-        deactivate Frontend
+        alt Erro no processamento
+            ResgateConsumerService -> ResgateConsumerService : log.error()
+            ResgateConsumerService -> PostgreSQL : resgate.setStatus(PENDENTE)
+            activate PostgreSQL
+            PostgreSQL --> ResgateConsumerService : ok
+            deactivate PostgreSQL
+        end
+
+        deactivate ResgateConsumerService
     end
 end
 
