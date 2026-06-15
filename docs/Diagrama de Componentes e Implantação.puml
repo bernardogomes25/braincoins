@@ -1,0 +1,39 @@
+@startuml diagrama-componentes-implantacao
+
+node "Dispositivo do Usuário" as UserDevice {
+    node "Navegador Web" as UserBrowser {
+        component "Aplicação Front-End" as Frontend
+    }
+}
+
+node "Servidor da Aplicação" as ApplicationServer {
+    component "API REST BrainCoins" as restApi
+    component "autenticação" as AuthService
+    component "trocas" as TrocasService
+    queue "Fila de Trocas" as TrocasQueue
+
+    interface "REST" as REST_auth
+    interface "REST" as REST_trocas
+}
+interface "HTTP" as HTTP_api
+
+node "Docker Container" as DockerContainer {
+    database "Banco de Dados" as DB
+}
+interface "TCP/IP" as TCP_banco
+
+
+
+Frontend -down-( HTTP_api
+restApi -up- HTTP_api
+
+AuthService -up- REST_auth
+restApi -down-( REST_auth
+TrocasService -up- REST_trocas
+restApi -down-( REST_trocas
+
+DB -up- TCP_banco
+AuthService -down-( TCP_banco
+TrocasService -down-( TCP_banco
+
+@enduml
