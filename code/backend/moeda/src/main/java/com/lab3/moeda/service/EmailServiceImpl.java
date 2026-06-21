@@ -1,26 +1,33 @@
 package com.lab3.moeda.service;
 
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailServiceImpl.class);
+    private static final String RESEND_API_URL = "https://api.resend.com/emails";
 
-    private final JavaMailSender mailSender;
+    private final RestClient restClient;
+
+    @Value("${mail.api.key}")
+    private String apiKey;
 
     @Value("${app.mail.from}")
     private String emailRemetente;
 
-    public EmailServiceImpl(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailServiceImpl(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
     }
 
     @Async
@@ -43,14 +50,22 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private void enviarEmail(String para, String assunto, String corpo) throws Exception {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-        helper.setFrom(emailRemetente);
-        helper.setTo(para);
-        helper.setSubject(assunto);
-        helper.setText(corpo, true);
-        mailSender.send(message);
+    private void enviarEmail(String para, String assunto, String corpo) {
+        Map<String, Object> body = Map.of(
+            "from", emailRemetente,
+            "to", List.of(para),
+            "subject", assunto,
+            "html", corpo
+        );
+
+        restClient.post()
+            .uri(RESEND_API_URL)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body)
+            .retrieve()
+            .toBodilessEntity();
+
         log.info("[EMAIL] Enviado para: {} | Assunto: {}", para, assunto);
     }
 }
