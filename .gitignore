@@ -12,8 +12,14 @@ dist-ssr/
 # --- Java / Maven / Backend ---
 target/
 bin/
+out/
 *.class
 *.iml
+*.jar
+*.war
+*.hprof
+hs_err_pid*
+HELP.md
 # Wrapper do Maven (manter o jar no controle de versão)
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/resources/archetype-resources/**

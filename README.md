@@ -472,11 +472,11 @@ Configure estas variáveis no arquivo `.env` na raiz do projeto ou como variáve
 | `DB_PASSWORD` | Senha do banco de dados. | `admin2513` |
 | `NEXTAUTH_SECRET` | Chave secreta para autenticação. | `secret_chave_aleatoria_123` |
 | `NEXTAUTH_URL` | URL base da aplicação para autenticação. | `http://localhost:3000` |
-| `MAIL_HOST` | Servidor SMTP. | `smtp.gmail.com` |
-| `MAIL_PORT` | Porta SMTP. | `587` |
-| `MAIL_USERNAME` | Usuário SMTP (e-mail remetente). | `seu-email@gmail.com` |
-| `MAIL_PASSWORD` | Senha de app SMTP. | `sua-senha-de-app` |
-| `MAIL_FROM` | E-mail remetente. | `seu-email@gmail.com` |
+| `MAIL_HOST` | Servidor SMTP (Resend). | `smtp.resend.com` |
+| `MAIL_PORT` | Porta SMTP SSL. | `465` |
+| `MAIL_USERNAME` | Usuário SMTP do Resend (fixo). | `resend` |
+| `MAIL_PASSWORD` | API Key do Resend. | `re_sua_api_key_aqui` |
+| `MAIL_FROM` | E-mail remetente (domínio verificado no Resend). | `noreply@seudominio.com` |
 
 #### 2 Front-end (React, Vite)
 
@@ -505,12 +505,12 @@ DATABASE_URL="postgresql://postgres:admin2513@localhost:5432/braincoins?schema=p
 NEXTAUTH_SECRET="secret_chave_aleatoria_123"
 NEXTAUTH_URL="http://localhost:3000"
 
-# SMTP — envio de e-mails (transações, resgates, trocas)
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=seu-email@gmail.com
-MAIL_PASSWORD=sua-senha-de-app
-MAIL_FROM=seu-email@gmail.com
+# SMTP — envio de e-mails via Resend (resend.com)
+MAIL_HOST=smtp.resend.com
+MAIL_PORT=465
+MAIL_USERNAME=resend
+MAIL_PASSWORD=re_sua_api_key_aqui
+MAIL_FROM=noreply@seudominio.com
 ```
 > 💡 **Sem SMTP configurado:** as operações funcionam normalmente, mas o envio de e-mail falha silenciosamente (erro registrado em log).
 

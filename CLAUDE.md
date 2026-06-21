@@ -57,12 +57,12 @@ braincoins/
 DATABASE_URL="postgresql://usuario:senha@localhost:5432/banco"
 NEXTAUTH_SECRET="chave-aleatoria"
 
-# SMTP (envio de e-mails — notificações de transação e resgate)
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=seu-email@gmail.com
-MAIL_PASSWORD=sua-senha-de-app
-MAIL_FROM=seu-email@gmail.com
+# SMTP (envio de e-mails via Resend — resend.com)
+MAIL_HOST=smtp.resend.com
+MAIL_PORT=465
+MAIL_USERNAME=resend
+MAIL_PASSWORD=re_sua_api_key_aqui
+MAIL_FROM=noreply@seudominio.com
 ```
 
 Frontend (`.env.local`):
