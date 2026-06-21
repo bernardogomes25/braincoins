@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "BrainCoins API",
-    "description": "API BrainCoins - Sistema de Moeda Estudantil\n\nBase URL: {{base_url}} (padrão: http://localhost:8080)\n\nEntidades: Alunos, Professores, Empresas, Instituições, Transações, Vantagens, Resgates.\n\nFluxo básico:\n1. Criar Instituição → importar Professores via CSV\n2. Criar Aluno e Empresa\n3. Fazer login (obtém dados do usuário)\n4. Professor distribui moedas → Aluno resgata vantagem da Empresa",
+    "description": "API BrainCoins - Sistema de Moeda Estudantil\n\nBase URL: {{base_url}}\n- Produção: https://braincoins.onrender.com\n- Desenvolvimento: http://localhost:8080\n\nTabelas (plural): alunos, professores, empresas, instituicoes, vantagens, resgates, transacoes, trocas\n\nFluxo básico:\n1. Criar Instituição → importar Professores via CSV\n2. Criar Aluno e Empresa\n3. Fazer login (obtém dados do usuário)\n4. Professor distribui moedas → Aluno resgata vantagem da Empresa",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -802,7 +802,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:8080",
+      "value": "https://braincoins.onrender.com",
       "type": "string"
     },
     {
