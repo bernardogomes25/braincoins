@@ -28,7 +28,7 @@ Monorepo: **Java 21 + Spring Boot 4.0.6** (backend) + **React 19 + Vite** (front
 **Backend**: Java 21, Spring Boot 4.0.6, JPA/Hibernate, Spring Security, Spring Mail (Mailtrap), PostgreSQL 17
 **Frontend**: React 19, TypeScript, Vite 8, TailwindCSS 4, TanStack Router 1, Radix UI, Recharts
 **Design System**: **Amber Intelligence** (substituiu o tema glassmorphism púrpura) — tokens semânticos via `@theme inline` em `src/styles.css`
-**Tipografia**: Syne (display), Plus Jakarta Sans (sans), JetBrains Mono (mono)
+**Tipografia**: Geist (display), Plus Jakarta Sans (sans), JetBrains Mono (mono)
 **Infraestrutura**: Docker, Docker Compose (PostgreSQL 17)
 **Produção**: Vercel (frontend), Render (backend Docker), Neon (PostgreSQL gerenciado)
 
@@ -43,9 +43,9 @@ braincoins/
 ├── BrainCoins_API.postman_collection.json
 ├── docs/                               # Diagramas (UML, ER, Casos de Uso)
 └── code/
-    ├── backend/moeda/                  # Spring Boot (10 controllers, 11 services, 8 repos, 10 entities)
+    ├── backend/moeda/                  # Spring Boot (10 controllers, 11 services, 8 repos, 12 entities)
     │   └── Dockerfile                      # Build multi-stage para deploy no Render
-    └── frontend/moeda-estudantil/      # React + Vite (26 rotas, 50+ componentes Radix UI)
+    └── frontend/moeda-estudantil/      # React + Vite (25 rotas, 50+ componentes Radix UI)
 ```
 
 ---
@@ -115,20 +115,65 @@ EmpresaEntity, InstituicaoEntity (separadas)
 
 Base: `http://localhost:8080/api`
 
+**Autenticação**
+
 | Rota | Método | Descrição |
 |------|--------|-----------|
-| `/login/{role}` | POST | Login (aluno/professor/empresa/instituicao) |
-| `/alunos`, `/professores`, `/empresas`, `/instituicoes` | GET/POST/PUT/DELETE | CRUD |
+| `/login/aluno` | POST | Login aluno |
+| `/login/professor` | POST | Login professor |
+| `/login/empresa` | POST | Login empresa |
+| `/login/instituicao` | POST | Login instituição |
+
+**CRUD (alunos, professores, empresas, instituicoes)**
+
+| Rota | Método | Descrição |
+|------|--------|-----------|
+| `/{entidade}` | GET/POST | Listar / Criar |
+| `/{entidade}/{id}` | GET/PUT/DELETE | Buscar / Atualizar / Deletar |
+| `/instituicoes/{id}/importar-professores` | POST | Import CSV de professores |
+
+**Transações**
+
+| Rota | Método | Descrição |
+|------|--------|-----------|
 | `/transacoes` | POST | Professor distribui moedas |
-| `/vantagens`, `/vantagens/resgatar` | GET/POST/DELETE/PATCH | Gerenciar vantagens e resgates |
-| `/resgates` | GET/PATCH | Listar e confirmar resgates |
-| `/trocas` | POST | Criar solicitação de troca entre alunos |
-| `/trocas/alunos-disponiveis/{alunoId}` | GET | Listar alunos com resgates ativos (excluindo o próprio) |
-| `/trocas/recebidas/{alunoId}` | GET | Listar trocas recebidas pelo aluno |
-| `/trocas/enviadas/{alunoId}` | GET | Listar trocas enviadas pelo aluno |
+| `/transacoes/aluno/{id}` | GET | Histórico completo do aluno |
+| `/transacoes/aluno/{id}/recebidas` | GET | Transações recebidas (filtro) |
+| `/transacoes/professor/{id}` | GET | Histórico do professor |
+
+**Vantagens e Resgates**
+
+| Rota | Método | Descrição |
+|------|--------|-----------|
+| `/vantagens` | GET | Listar vantagens ativas |
+| `/vantagens/todas` | GET | Listar todas (ativas + inativas) |
+| `/vantagens/{id}` | GET/PUT/DELETE | Buscar / Atualizar / Deletar |
+| `/vantagens` | POST | Criar vantagem |
+| `/vantagens/empresa/{empresaId}` | GET | Vantagens por empresa |
+| `/vantagens/{id}/toggle` | PATCH | Ativar/desativar vantagem |
+| `/vantagens/resgatar` | POST | Resgatar vantagem (aluno) |
+| `/resgates/aluno/{alunoId}` | GET | Resgates do aluno |
+| `/resgates/empresa/{empresaId}` | GET | Resgates recebidos pela empresa |
+| `/resgates/{id}/confirmar` | PATCH | Confirmar retirada (empresa) |
+
+**Trocas**
+
+| Rota | Método | Descrição |
+|------|--------|-----------|
+| `/trocas` | POST | Criar solicitação de troca |
+| `/trocas/alunos-disponiveis/{alunoId}` | GET | Alunos com resgates ativos (excluindo o próprio) |
+| `/trocas/recebidas/{alunoId}` | GET | Trocas recebidas pelo aluno |
+| `/trocas/enviadas/{alunoId}` | GET | Trocas enviadas pelo aluno |
 | `/trocas/{id}/aceitar` | PATCH | Aceitar troca (transfere posse dos resgates) |
 | `/trocas/{id}/recusar` | PATCH | Recusar troca |
 | `/trocas/{id}/cancelar` | PATCH | Cancelar troca pendente (pelo solicitante) |
+
+**Utilitários**
+
+| Rota | Método | Descrição |
+|------|--------|-----------|
+| `/uploads` | POST | Upload de imagem (multipart, máx 5MB) → `{url}` |
+| `/admin/professor/{id}/saldo/{valor}` | POST | Adicionar saldo (apenas dev/testes) |
 
 Documentação completa: `BrainCoins_API.postman_collection.json`
 
@@ -138,12 +183,18 @@ Documentação completa: `BrainCoins_API.postman_collection.json`
 
 | Entidade | Campos-chave | Relacionamento |
 |----------|-------------|-----------------|
-| `AlunoEntity` | id, email (unique), cpf (unique), saldo, curso | 1:N Transacao |
-| `ProfessorEntity` | id, email (unique), cpf (unique), saldo, disciplina | 1:N Transacao |
-| `EmpresaEntity` | id, email (unique), cnpj (unique) | 1:N Vantagem |
-| `VantagemEntity` | id, empresa_id (FK), custo, estoque, ativo | N:M Aluno (via Resgate) |
-| `ResgateEntity` | id, aluno_id (FK), vantagem_id (FK), codigoCupom (unique), status | — |
-| `TrocaEntity` | id, aluno_solicitante_id (FK), aluno_destinatario_id (FK), resgate_oferecido_id (FK), resgate_desejado_id (FK), dataSolicitacao, status | N:M AlunoEntity (via resgates trocados) |
+| `UsuarioEntity` | id, nome, email, senha, dataCadastro | base (herança JPA) |
+| `UsuarioAcademicoEntity` | saldo, cpf | estende UsuarioEntity |
+| `AlunoEntity` | rg, endereco, curso, instituicao | estende UsuarioAcademico; 1:N Transacao |
+| `ProfessorEntity` | disciplina, instituicao (FK), LIMITE_MOEDAS | estende UsuarioAcademico; 1:N Transacao |
+| `EmpresaEntity` | cnpj (unique), descricao | separada; 1:N Vantagem |
+| `InstituicaoEntity` | cnpj (unique) | separada |
+| `CursoEntity` | nome | suporte |
+| `DepartamentoEntity` | nome | suporte |
+| `TransacaoEntity` | professor_id (FK), aluno_id (FK), quantidade, descricao, data, status | — |
+| `VantagemEntity` | empresa_id (FK), custo, estoque, ativo | N:M Aluno (via Resgate) |
+| `ResgateEntity` | aluno_id (FK), vantagem_id (FK), codigoCupom (unique), status | — |
+| `TrocaEntity` | aluno_solicitante_id (FK), aluno_destinatario_id (FK), resgate_oferecido_id (FK), resgate_desejado_id (FK), dataSolicitacao, status | N:M AlunoEntity (via resgates trocados) |
 
 Status de resgate: `ATIVO → PENDENTE → {APROVADO, REJEITADO}`
 Status de troca: `PENDENTE → ACEITA` | `PENDENTE → {RECUSADA, CANCELADA, EXPIRADA}` (expiração automática após 15 dias)
@@ -199,7 +250,7 @@ Status de troca: `PENDENTE → ACEITA` | `PENDENTE → {RECUSADA, CANCELADA, EXP
   - `MethodArgumentNotValidException` → 400 com mapa `field → message`
   - `DataIntegrityViolationException` → 409 detectando conflito de `cnpj`/`email`/`cpf`
   - `NoSuchElementException` → 404
-  - `IllegalStateException` → 400
+  - `IllegalStateException` → 409 (Conflict)
 - `AuthController` tem handlers próprios para login:
   - `NoSuchElementException` → 404 ("Usuário não encontrado.")
   - `SenhaIncorretaException` → 401 ("Senha incorreta.")
@@ -227,14 +278,19 @@ cd code/backend/moeda
 - Saldo como campo direto (não calculado) — simplifica queries, requer atenção a concorrência
 - TanStack Router: type-safe, tipagem automática de rotas
 - Radix UI: headless, totalmente customizável com Tailwind
-- `@EnableAsync` e `@EnableScheduling`: Reset semestral + expiração de resgates (`ResgateScheduler`) + expiração de trocas pendentes (`TrocaScheduler`, cron diário à meia-noite, 15 dias)
+- `@EnableAsync` e `@EnableScheduling`: três schedulers ativos:
+  - `SemestreScheduler` — `0 0 0 1 3,8 *` (1º de março e agosto): credita 1.000 moedas para cada professor (respeitando `LIMITE_MOEDAS`)
+  - `ResgateScheduler` — `0 0 0 * * ?` (diário meia-noite): cancela resgates expirados (15 dias sem confirmação, reembolsa aluno)
+  - `TrocaScheduler` — `0 0 0 * * ?` (diário meia-noite): expira trocas pendentes após 15 dias
 - **Aceitar troca é síncrono**: `TrocaService.aceitar()` transfere a posse dos resgates e seta status `ACEITA` diretamente na mesma transação, sem fila de mensagens.
 - **Envio de e-mails** via Spring Mail + SMTP: todas as notificações são `@Async` (não bloqueiam a request) e falham silenciosamente com log de erro quando o SMTP não está configurado. Eventos cobertos por serviço:
   - `TransacaoService`: aluno recebe moedas; professor confirma envio
   - `ResgateService`: aluno recebe cupom; empresa é notificada de novo resgate; aluno é notificado quando resgate expira (reembolso automático)
   - `TrocaService`: destinatário recebe nova solicitação; solicitante recebe aceite; aceitante confirma aceite; solicitante recebe recusa; destinatário recebe cancelamento (pelo solicitante); solicitante recebe notificação de expiração por prazo
 - Design tokens centralizados em `styles.css` (`@theme inline`) — toda paleta/tipografia consumida via utilitários Tailwind, não hardcoded
-- `DataSeeder` (`config/`) cria automaticamente uma Instituição "PUC Minas" no boot se a tabela estiver vazia — usada pelo botão "Entrar (demo)" da Instituição na landing
+- `QrCodeUtil` (`util/`) gera QR code 200×200px em Base64 via Google ZXing 3.5.3 — usado para cupons de resgate
+- `EmailTemplates` (`util/`) centraliza os templates HTML dos e-mails enviados pelo `EmailServiceImpl`
+- `DataSeeder` (`config/`) popula banco automaticamente no boot se vazio. Cria: 1 Instituição "PUC Minas", 1 Professor, 2 Alunos (aluno1/aluno2 com 200/150 moedas de saldo inicial), 1 Empresa, 2 Vantagens pré-configuradas e resgates ativos para demo. Usado pelo botão "Entrar (demo)" da landing
 - `AuthController` invalida sessão stale: ao acessar `/auth/$role` com outra role já logada, o `AuthPage` chama `store.logout()` antes do novo login
 
 ---

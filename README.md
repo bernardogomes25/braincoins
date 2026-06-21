@@ -851,6 +851,11 @@ PATCH /api/trocas/{id}/recusar               # Recusar troca
 PATCH /api/trocas/{id}/cancelar              # Cancelar proposta
 ```
 
+#### Uploads
+```bash
+POST /api/uploads                            # Upload de imagem (multipart/form-data, máx 5MB)
+```
+
 ### 💻 Testando com Postman
 
 1. Importe a collection: **`BrainCoins_API.postman_collection.json`**
