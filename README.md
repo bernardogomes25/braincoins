@@ -1,7 +1,7 @@
-
+﻿
 # 🧠📖 BrainCoins - Sistema de Moeda Estudantil 🪙
 
-![Java](https://img.shields.io/badge/Java-21-007ec6?style=for-the-badge&logo=openjdk&logoColor=white) ![Maven](https://img.shields.io/badge/Maven-4.0.0-007ec6?style=for-the-badge&logo=apachemaven&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-007ec6?style=for-the-badge&logo=springboot&logoColor=white) ![React](https://img.shields.io/badge/React-19.2.5-007ec6?style=for-the-badge&logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-8.0.9-007ec6?style=for-the-badge&logo=vite&logoColor=white) ![GitHub repo size](https://img.shields.io/github/repo-size/jalv21/braincoins?style=for-the-badge&logo=files) ![GitHub directory file count](https://img.shields.io/github/directory-file-count/jalv21/braincoins?style=for-the-badge&logo=files) ![GitHub stars](https://img.shields.io/github/stars/jalv21/braincoins?style=for-the-badge&logo=github) ![GitHub forks](https://img.shields.io/github/forks/jalv21/braincoins?style=for-the-badge&logo=git) ![GitHub language count](https://img.shields.io/github/languages/count/jalv21/braincoins?style=for-the-badge&logo=python) ![GitHub license](https://img.shields.io/github/license/jalv21/braincoins?style=for-the-badge&color=007ec6&logo=opensourceinitiative) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/jalv21/braincoins?style=for-the-badge&color=007ec6&logo=gitkraken) ![GitHub last commit](https://img.shields.io/github/last-commit/jalv21/braincoins?style=for-the-badge&logo=clockify) ![Views Counter](https://views-counter.vercel.app/badge?pageId=https%3A%2F%2Fgithub%2Ecom%2Fjalv21%2Fbraincoins&leftColor=555555&rightColor=007ec6&type=total&label=RepoViews)
+![Java](https://img.shields.io/badge/Java-21-007ec6?style=for-the-badge&logo=openjdk&logoColor=white) ![Maven](https://img.shields.io/badge/Maven-4.0.0-007ec6?style=for-the-badge&logo=apachemaven&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-007ec6?style=for-the-badge&logo=springboot&logoColor=white) ![React](https://img.shields.io/badge/React-19.2.5-007ec6?style=for-the-badge&logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-8.0.9-007ec6?style=for-the-badge&logo=vite&logoColor=white) ![GitHub repo size](https://img.shields.io/github/repo-size/bernardogomes25/braincoins?style=for-the-badge&logo=files) ![GitHub directory file count](https://img.shields.io/github/directory-file-count/bernardogomes25/braincoins?style=for-the-badge&logo=files) ![GitHub stars](https://img.shields.io/github/stars/bernardogomes25/braincoins?style=for-the-badge&logo=github) ![GitHub forks](https://img.shields.io/github/forks/bernardogomes25/braincoins?style=for-the-badge&logo=git) ![GitHub language count](https://img.shields.io/github/languages/count/bernardogomes25/braincoins?style=for-the-badge&logo=python) ![GitHub license](https://img.shields.io/github/license/bernardogomes25/braincoins?style=for-the-badge&color=007ec6&logo=opensourceinitiative) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/bernardogomes25/braincoins?style=for-the-badge&color=007ec6&logo=gitkraken) ![GitHub last commit](https://img.shields.io/github/last-commit/bernardogomes25/braincoins?style=for-the-badge&logo=clockify) ![Views Counter](https://views-counter.vercel.app/badge?pageId=https%3A%2F%2Fgithub%2Ecom%2Fjalv21%2Fbraincoins&leftColor=555555&rightColor=007ec6&type=total&label=RepoViews)
 
 Um sistema gamificado de moeda estudantil em que professores podem reconhecer o mérito dos seus alunos através de moedas virtuais que podem ser trocadas por diversas vantagens, oferecidas por empresas parceiras. Gerencia transferência de moedas de professores para alunos, reivindicação e resgate de vantagens por alunos, e **troca de resgates ativos entre alunos**. Desenvolvido com **Spring Boot**, **React** e **Vite**. 
 
@@ -46,9 +46,9 @@ Um sistema gamificado de moeda estudantil em que professores podem reconhecer o 
 
 ## 🔗 Links Úteis
 * 📚 **Documentação:** Consulte as seções abaixo para mais informações sobre instalação, arquitetura e uso.
-* 🐙 **Repositório GitHub:** [BrainCoins](https://github.com/jalv21/braincoins)
-* 🚀 **Backend API:** hospedado localmente por enquanto
-* 🎨 **Frontend Web:** hospedado localmente por enquanto
+* 🐙 **Repositório GitHub:** [BrainCoins](https://github.com/bernardogomes25/braincoins)
+* 🚀 **Backend API:** https://braincoins.onrender.com
+* 🎨 **Frontend Web:** https://braincoins-theta.vercel.app
 * 📋 **Postman Collection:** `BrainCoins_API.postman_collection.json`
 
 ---
@@ -231,6 +231,9 @@ As seguintes ferramentas, frameworks e bibliotecas foram utilizados na construç
 
 * **Containerização:** Docker, Docker Compose
 * **PostgreSQL:** Versão 17-alpine (otimizada e leve)
+* **Deploy Backend:** Render (Web Service Docker, plano gratuito)
+* **Deploy Frontend:** Vercel (SPA, plano gratuito)
+* **Banco em Produção:** Neon (PostgreSQL gerenciado, região São Paulo)
 
 ---
 
@@ -481,7 +484,7 @@ Crie um arquivo **`.env.local`** na pasta `/code/frontend/moeda-estudantil` e us
 
 | Variável | Descrição | Exemplo |
 | :--- | :--- | :--- |
-| `VITE_API_URL` | URL base do Backend Spring Boot API. | `http://localhost:8080/api` |
+| `VITE_API_URL` | URL base do Backend Spring Boot API. | `http://localhost:8080` |
 
 ---
 
@@ -514,7 +517,7 @@ MAIL_FROM=seu-email@gmail.com
 **Arquivo: `code/frontend/moeda-estudantil/.env.local`**
 ```bash
 # URL da API Backend
-VITE_API_URL=http://localhost:8080/api
+VITE_API_URL=http://localhost:8080
 ```
 
 > 💡 **Localização:** O arquivo `.env.local` deve estar em `code/frontend/moeda-estudantil/.env.local` para que o Vite consiga carregá-lo durante o desenvolvimento.
@@ -526,7 +529,7 @@ Clone o repositório e instale as dependências.
 1.  **Clone o Repositório:**
 
 ```bash
-git clone https://github.com/jalv21/braincoins.git
+git clone https://github.com/bernardogomes25/braincoins.git
 cd braincoins
 ```
 
@@ -587,13 +590,11 @@ Execute a aplicação em modo de desenvolvimento em **três etapas** (infraestru
 
 #### Passo 0: Infraestrutura (Docker)
 
-**Obrigatório antes de iniciar o backend.** Sobe o PostgreSQL 17 e o RabbitMQ 3:
+**Obrigatório antes de iniciar o backend.** Sobe o PostgreSQL 17:
 
 ```bash
 docker compose up -d
 ```
-
-> ⚠️ O backend **falha ao iniciar** se o RabbitMQ não estiver rodando.
 
 ---
 
@@ -685,40 +686,34 @@ docker-compose down
 
 ## 🚀 Deploy
 
-Instruções para deploy em produção.
+### Produção — Stack gratuita (sem cartão)
 
-1.  **Build do Projeto:**
-    Execute o build separadamente para os dois artefatos (JAR para o Back-end e arquivos estáticos para o Front-end).
+| Serviço | Papel | URL pública |
+|---------|-------|-------------|
+| **Vercel** | Frontend React + Vite (SPA) | https://braincoins-theta.vercel.app |
+| **Render** | Backend Spring Boot (Docker) | https://braincoins.onrender.com |
+| **Neon** | PostgreSQL gerenciado (São Paulo) | — |
 
-```bash
-# 1. Build do Front-end (React/Vite)
-cd code/frontend/moeda-estudantil
-npm run build
+**Como funciona:** push na branch `main` de `bernardogomes25/braincoins` aciona
+deploy automático no Vercel e no Render.
 
-# 2. Build do Back-end (Spring Boot/Maven)
-cd ../../backend/moeda
-./mvnw clean package -DskipTests
-```
+**Variáveis necessárias no Render:**
 
-2.  **Configuração do Ambiente de Produção:** Defina as variáveis de ambiente no seu provedor (e.g., Vercel, Railway, Heroku, DigitalOcean).
+| Variável | Descrição |
+|----------|-----------|
+| `SPRING_DATASOURCE_URL` | Connection string JDBC do Neon |
+| `DB_USERNAME` | Usuário do banco Neon |
+| `DB_PASSWORD` | Senha do banco Neon |
+| `APP_CORS_ALLOWED_ORIGINS` | URL do Vercel (para liberar CORS) |
 
-> 🔑 **Variáveis Cruciais:** Certifique-se de configurar as variáveis de **conexão com o banco de dados** (`SPRING_DATASOURCE_URL`, etc.) para o Back-end e a **URL da API de produção** (`VITE_API_URL`) para o Front-end.
+**Variáveis necessárias no Vercel:**
 
-3.  **Execução em Produção:**
-    A forma de execução depende do seu provedor, mas geralmente envolve o seguinte:
+| Variável | Valor |
+|----------|-------|
+| `VITE_API_URL` | `https://braincoins.onrender.com` |
 
-```bash
-# ☕ Execução do Back-end Spring Boot (Java JAR)
-# Este comando inicia a API usando o artefato JAR gerado.
-java -jar code/backend/moeda/target/moeda-0.0.1-SNAPSHOT.jar
-
-# 🟢 Execução do Front-end (React/Vite)
-# Servir arquivos estáticos com 'serve' (para testes locais)
-npm install -g serve
-serve -s code/frontend/moeda-estudantil/dist -l 3000
-
-# Em produção, deploy em Vercel/Netlify ou servir com Nginx/Apache
-```
+> ⚠️ **Cold start:** o Render hiberna após 15 min de inatividade.
+> A primeira requisição pode demorar ~50s para o backend acordar.
 
 ---
 
@@ -742,6 +737,7 @@ serve -s code/frontend/moeda-estudantil/dist -l 3000
 │   │       ├── pom.xml          # 🛠️ Dependências e configuração Maven.
 │   │       ├── mvnw             # 🔧 Maven Wrapper (executável).
 │   │       ├── mvnw.cmd         # 🔧 Maven Wrapper (Windows).
+│       ├── Dockerfile           # 🐳 Build multi-stage para deploy no Render.
 │   │       │
 │   │       ├── /src/main/java
 │   │       │   └── /com/lab3/moeda
@@ -771,6 +767,8 @@ serve -s code/frontend/moeda-estudantil/dist -l 3000
 │           ├── package.json                 # 📦 Dependências e scripts npm.
 │           ├── package-lock.json            # 🔒 Lockfile das dependências.
 │           ├── vite.config.js               # ⚙️ Configuração Vite.
+│           ├── vercel.json                  # 🔀 Fallback SPA para TanStack Router.
+│           ├── .env.example                 # 🧩 Exemplo de variáveis (VITE_API_URL).
 │           ├── index.html                   # 🌐 HTML raiz.
 │           ├── .env.local                   # 🔒 Variáveis de ambiente (VITE_API_URL).
 │           │

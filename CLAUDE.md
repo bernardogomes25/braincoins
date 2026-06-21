@@ -25,11 +25,12 @@ Monorepo: **Java 21 + Spring Boot 4.0.6** (backend) + **React 19 + Vite** (front
 
 ## Stack Tecnológico
 
-**Backend**: Java 21, Spring Boot 4.0.6, JPA/Hibernate, Spring Security, Spring Mail (Mailtrap), PostgreSQL 17, RabbitMQ 3
+**Backend**: Java 21, Spring Boot 4.0.6, JPA/Hibernate, Spring Security, Spring Mail (Mailtrap), PostgreSQL 17
 **Frontend**: React 19, TypeScript, Vite 8, TailwindCSS 4, TanStack Router 1, Radix UI, Recharts
 **Design System**: **Amber Intelligence** (substituiu o tema glassmorphism púrpura) — tokens semânticos via `@theme inline` em `src/styles.css`
 **Tipografia**: Syne (display), Plus Jakarta Sans (sans), JetBrains Mono (mono)
-**Infraestrutura**: Docker, Docker Compose (PostgreSQL 17 + RabbitMQ 3-management)
+**Infraestrutura**: Docker, Docker Compose (PostgreSQL 17)
+**Produção**: Vercel (frontend), Render (backend Docker), Neon (PostgreSQL gerenciado)
 
 ---
 
@@ -43,6 +44,7 @@ braincoins/
 ├── docs/                               # Diagramas (UML, ER, Casos de Uso)
 └── code/
     ├── backend/moeda/                  # Spring Boot (10 controllers, 11 services, 8 repos, 10 entities)
+    │   └── Dockerfile                      # Build multi-stage para deploy no Render
     └── frontend/moeda-estudantil/      # React + Vite (26 rotas, 50+ componentes Radix UI)
 ```
 
@@ -70,11 +72,11 @@ VITE_API_URL=http://localhost:8080/api
 
 ### Startup
 
-**Banco de dados + RabbitMQ (obrigatório antes do backend):**
+**Banco de dados (obrigatório antes do backend):**
 ```bash
 docker compose up -d
 ```
-> Sobe PostgreSQL 17 (porta 5432) e RabbitMQ 3 (portas 5672 e 15672). O backend falha ao iniciar sem o RabbitMQ.
+> Sobe PostgreSQL 17 (porta 5432).
 
 **Backend:**
 ```bash
@@ -144,7 +146,7 @@ Documentação completa: `BrainCoins_API.postman_collection.json`
 | `TrocaEntity` | id, aluno_solicitante_id (FK), aluno_destinatario_id (FK), resgate_oferecido_id (FK), resgate_desejado_id (FK), dataSolicitacao, status | N:M AlunoEntity (via resgates trocados) |
 
 Status de resgate: `ATIVO → PENDENTE → {APROVADO, REJEITADO}`
-Status de troca: `PENDENTE → PROCESSANDO → ACEITA` (via fila RabbitMQ) | `PENDENTE → {RECUSADA, CANCELADA, EXPIRADA}` (expiração automática após 15 dias)
+Status de troca: `PENDENTE → ACEITA` | `PENDENTE → {RECUSADA, CANCELADA, EXPIRADA}` (expiração automática após 15 dias)
 
 ---
 
@@ -226,7 +228,7 @@ cd code/backend/moeda
 - TanStack Router: type-safe, tipagem automática de rotas
 - Radix UI: headless, totalmente customizável com Tailwind
 - `@EnableAsync` e `@EnableScheduling`: Reset semestral + expiração de resgates (`ResgateScheduler`) + expiração de trocas pendentes (`TrocaScheduler`, cron diário à meia-noite, 15 dias)
-- **RabbitMQ** (fila `fila.aceite.troca`, durable): aceitar troca é assíncrono — `TrocaService.aceitar()` seta status `PROCESSANDO` e publica `TrocaAceitaEventDTO` na fila; `TrocaConsumerService` (@RabbitListener) transfere `aluno_id` dos resgates e seta `ACEITA`. Serialização via `GsonMessageConverter` (header `__TypeId__`). Config em `RabbitConfig.java`.
+- **Aceitar troca é síncrono**: `TrocaService.aceitar()` transfere a posse dos resgates e seta status `ACEITA` diretamente na mesma transação, sem fila de mensagens.
 - **Envio de e-mails** via Spring Mail + SMTP: todas as notificações são `@Async` (não bloqueiam a request) e falham silenciosamente com log de erro quando o SMTP não está configurado. Eventos cobertos por serviço:
   - `TransacaoService`: aluno recebe moedas; professor confirma envio
   - `ResgateService`: aluno recebe cupom; empresa é notificada de novo resgate; aluno é notificado quando resgate expira (reembolso automático)
@@ -247,30 +249,37 @@ cd code/backend/moeda
 - Envio de e-mail depende de SMTP configurado no `.env` — sem credenciais válidas, as ações continuam funcionando mas o e-mail falha silenciosamente (log do `EmailServiceImpl`)
 - Suíte de testes em `src/test/java` está desatualizada (DTOs mudaram) e não compila — use `./mvnw spring-boot:run -Dmaven.test.skip=true` para subir o backend
 - Se `target/` ou `~/.m2/` estiverem com ownership de `root` (ocorre ao buildar com sudo), o Maven não consegue escrever — use `sudo chown -R $USER:$USER target/ ~/.m2/` para corrigir; alternativamente execute o JAR diretamente: `java -jar target/moeda-0.0.1-SNAPSHOT.jar`
-- RabbitMQ precisa estar rodando antes do backend — `docker compose up -d` sobe PostgreSQL + RabbitMQ juntos
 
 ---
 
 ## Deploy
 
-### Build Manual
+### Produção (100% gratuito, sem cartão)
 
-```bash
-# Backend JAR
-cd code/backend/moeda
-./mvnw clean package -DskipTests
+| Serviço | Papel | URL |
+|---------|-------|-----|
+| **Vercel** | Frontend (SPA React + Vite) | https://braincoins-theta.vercel.app |
+| **Render** | Backend (Spring Boot via Docker) | https://braincoins.onrender.com |
+| **Neon** | PostgreSQL gerenciado (São Paulo) | ep-little-river-acrto9l7.sa-east-1.aws.neon.tech |
 
-# Frontend
-cd code/frontend/moeda-estudantil
-npm run build
-```
+**Variáveis de ambiente no Render:**
+SPRING_DATASOURCE_URL    = jdbc:postgresql://<host-neon>/neondb?sslmode=require
+DB_USERNAME              = neondb_owner
+DB_PASSWORD              = (configurado no painel Render)
+APP_CORS_ALLOWED_ORIGINS = https://braincoins-theta.vercel.app
+
+**Variáveis de ambiente no Vercel:**
+VITE_API_URL = https://braincoins.onrender.com
+
+> **Cold start:** o Render hiberna após 15 min de inatividade; a primeira requisição
+> pode demorar ~50s. Comportamento normal do plano gratuito.
 
 ### Ambientes
 
 | Ambiente | Backend | Frontend | BD |
 |----------|---------|----------|-----|
 | Dev | localhost:8080 | localhost:5173 | Docker (postgres:5432) |
-| Prod | (a definir) | (a definir) | (a definir) |
+| Prod | braincoins.onrender.com | braincoins-theta.vercel.app | Neon (São Paulo) |
 
 ---
 
@@ -279,7 +288,7 @@ npm run build
 - **Diagramas**: `docs/` (Classes, ER, Componentes, Casos de Uso)
 - **Postman**: `BrainCoins_API.postman_collection.json`
 - **README principal**: `README.md`
-- **Repositório**: https://github.com/jalv21/braincoins
+- **Repositório**: https://github.com/bernardogomes25/braincoins
 
 ---
 
